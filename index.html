@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stoic Matrix AI — THE BRIDGE | Angel Guardian Technologies</title>
+  <meta name="description" content="Virtue-aligned multi-DAO federation. Stoic Matrix AI · Constitutional governance · CNOTA · Virtue Passport · L0–L5 architecture." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c0e12;
+      --bg-elevated: #14171d;
+      --bg-card: #1a1e26;
+      --gold: #d4af37;
+      --gold-dim: #a88b2a;
+      --gold-glow: rgba(212, 175, 55, 0.15);
+      --text: #e8e6e3;
+      --text-muted: #9a968f;
+      --border: #2a2f38;
+      --accent-line: #c9a227;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, .serif {
+      font-family: 'Cinzel', serif;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    a { color: var(--gold); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: #f0d978; }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(12, 14, 18, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: 'Cinzel', serif;
+      font-size: 1.05rem;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+    }
+
+    .nav-brand img {
+      height: 36px;
+      width: auto;
+      border-radius: 4px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.75rem;
+      list-style: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .nav-links a { color: var(--text-muted); }
+    .nav-links a:hover { color: var(--gold); }
+
+    .nav-cta {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 0.45rem 1.1rem;
+      font-size: 0.85rem;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.06em;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .nav-cta:hover {
+      background: var(--gold);
+      color: var(--bg);
+    }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 1.5rem 4rem;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, var(--gold-glow), transparent),
+        var(--bg);
+      position: relative;
+    }
+
+    .hero-logo {
+      width: min(320px, 78vw);
+      margin-bottom: 2.5rem;
+      filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.25));
+    }
+
+    .hero h1 {
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+    }
+
+    .hero .tagline {
+      font-size: clamp(1rem, 2.5vw, 1.35rem);
+      color: var(--text);
+      max-width: 640px;
+      margin: 0 auto 1.5rem;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+
+    .hero .sub {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 2.75rem;
+    }
+
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--bg);
+      padding: 0.85rem 1.8rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.06em;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+    }
+    .btn-primary:hover {
+      background: #e8c547;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--gold);
+      padding: 0.85rem 1.8rem;
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.06em;
+      border: 1px solid var(--gold);
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      background: var(--gold-glow);
+    }
+
+    /* SECTIONS */
+    section {
+      padding: 5rem 1.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    section h2 {
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-lead {
+      text-align: center;
+      color: var(--text-muted);
+      max-width: 620px;
+      margin: 0 auto 3rem;
+      font-size: 1.05rem;
+    }
+
+    /* VISION */
+    .vision-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.75rem;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--gold-dim); }
+
+    .card h3 {
+      color: var(--gold);
+      font-size: 1.15rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* LAYERS */
+    .layers {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .layer {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 1.25rem;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.1rem 1.4rem;
+    }
+
+    .layer-id {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .layer-name {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.15rem;
+    }
+
+    .layer-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    /* PASSPORT */
+    .passport-stages {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .stage {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    .stage-num {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+    }
+
+    .stage h4 {
+      color: var(--text);
+      margin-bottom: 0.4rem;
+      font-size: 1rem;
+    }
+
+    .stage p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* CTA FINAL */
+    .final-cta {
+      text-align: center;
+      padding: 4.5rem 1.5rem;
+      background: linear-gradient(180deg, transparent, var(--gold-glow) 50%, transparent);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .final-cta h2 {
+      margin-bottom: 1rem;
+    }
+
+    .final-cta p {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 3rem 1.5rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer .motto {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    footer .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      justify-content: center;
+      margin: 1.25rem 0;
+    }
+
+    footer .meta {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 1.5rem;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 720px) {
+      .nav-links { display: none; }
+      .layer { grid-template-columns: 1fr; gap: 0.4rem; }
+      .layer-id { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav>
+    <div class="nav-brand">
+      <span>STOIC MATRIX</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#vision">Vision</a></li>
+      <li><a href="#layers">Architecture</a></li>
+      <li><a href="#passport">Virtue Passport</a></li>
+      <li><a href="#cnota">CNOTA</a></li>
+    </ul>
+    <a class="nav-cta" href="https://github.com/cieobchodzitm-lab/StoicMatrixAitest" target="_blank" rel="noopener">Dashboard →</a>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <h1>Stoic Matrix AI</h1>
+    <p class="tagline">Virtue-aligned governance for multi-DAO federation</p>
+    <p class="sub">THE BRIDGE · Stoic Foundation · Angel Guardian Technologies</p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="https://github.com/cieobchodzitm-lab/StoicMatrixAitest" target="_blank" rel="noopener">Enter CNOTA Dashboard</a>
+      <a class="btn-secondary" href="#layers">Explore Architecture</a>
+    </div>
+  </header>
+
+  <!-- VISION -->
+  <section id="vision">
+    <h2>Vision</h2>
+    <p class="section-lead">
+      Building a resilient, anti-plutocratic federation where virtue and time-in-the-game outweigh pure capital.
+    </p>
+    <div class="vision-grid">
+      <div class="card">
+        <h3>Hybrid Voting</h3>
+        <p>50 % equal-DAO track (1-DAO-1-vote protected by RDV) + 50 % virtue-and-activity weighted track. Progressive trust, not permanent dominance.</p>
+      </div>
+      <div class="card">
+        <h3>Virtue First</h3>
+        <p>Four cardinal virtues — Sophia, Andreia, Dikaiosyne, Sophrosyne — measured, scored and used as real governance signal via CNOTA.</p>
+      </div>
+      <div class="card">
+        <h3>Constitutional Stack</h3>
+        <p>Explicit L0–L5 layers with audit trail on every decision. No Pinky. Every action leaves a ConstitutionalAudit.</p>
+      </div>
+      <div class="card">
+        <h3>Meta-Jury</h3>
+        <p>Human + high-virtue backstop for anomaly detection, tier disputes and ethical escalation. Optimistic by default, challengeable when needed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYERS -->
+  <section id="layers">
+    <h2>Constitutional Architecture</h2>
+    <p class="section-lead">Dual-track: off-chain TypeScript propositions + on-chain Solidity registry. Six layers of constraint and virtue.</p>
+    <div class="layers">
+      <div class="layer">
+        <div class="layer-id">L0</div>
+        <div>
+          <div class="layer-name">Physical Safety</div>
+          <div class="layer-desc">Immediate block on any physical-harm vector. Non-negotiable.</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-id">L1</div>
+        <div>
+          <div class="layer-name">Security</div>
+          <div class="layer-desc">Key management, spoofing resistance, scope verification, cryptographic integrity.</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-id">L2</div>
+        <div>
+          <div class="layer-name">Legal</div>
+          <div class="layer-desc">Jurisdictional compliance, public representation, liability boundaries.</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-id">L3</div>
+        <div>
+          <div class="layer-name">Economic</div>
+          <div class="layer-desc">Treasury rules, grant processes, anti-sybil economic design, diminishing returns.</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-id">L4</div>
+        <div>
+          <div class="layer-name">Governance</div>
+          <div class="layer-desc">Core Engine — manipulation analysis, harm classification, ConstitutionalAudit producer, RDV, Meta-Jury.</div>
+        </div>
+      </div>
+      <div class="layer">
+        <div class="layer-id">L5</div>
+        <div>
+          <div class="layer-name">Virtue</div>
+          <div class="layer-desc">Sophia · Andreia · Dikaiosyne · Sophrosyne. Scoring, acceleration, eligibility and soft reputation.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PASSPORT -->
+  <section id="passport">
+    <h2>Virtue Passport</h2>
+    <p class="section-lead">
+      Moltbook handshake protocol. Every agent starts untrusted and earns progressive trust through audited behavior.
+    </p>
+    <div class="passport-stages">
+      <div class="stage">
+        <div class="stage-num">01</div>
+        <h4>UNTRUSTED</h4>
+        <p>Agent arrives without credentials. Limited scope only.</p>
+      </div>
+      <div class="stage">
+        <div class="stage-num">02</div>
+        <h4>PROVISIONAL</h4>
+        <p>Presents constitutional fingerprint. Scope declared & verified.</p>
+      </div>
+      <div class="stage">
+        <div class="stage-num">03</div>
+        <h4>TRUSTED</h4>
+        <p>First audited session without L0–L4 violations. Full gated privileges.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CNOTA -->
+  <section id="cnota">
+    <h2>CNOTA & RDV</h2>
+    <p class="section-lead">
+      Live virtue scoring, leaderboard, NFT passport minting gated by signed Virtue Passport, and the Resilient DAO Voice anti-plutocracy layer.
+    </p>
+    <div class="vision-grid">
+      <div class="card">
+        <h3>Virtue Radar</h3>
+        <p>Real-time visualization of the four Stoic virtues. Profile cards and progress bars for every participant.</p>
+      </div>
+      <div class="card">
+        <h3>Tiered Activation</h3>
+        <p>Observer → Active → Full. Time + activity + optional Virtue acceleration. UMA optimistic assertions.</p>
+      </div>
+      <div class="card">
+        <h3>Passport Mint</h3>
+        <p>ERC-1155 / Solana NFT gated by verified AGT-VIRTUE-PASSPORT-v1 (TRUSTED stage required).</p>
+      </div>
+      <div class="card">
+        <h3>Audit Trail</h3>
+        <p>Every decision produces a ConstitutionalAudit. Hash-anchored. No Pinky policy enforced.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <div class="final-cta">
+    <h2>Join the Federation</h2>
+    <p>Explore the live dashboard, review the technical specifications, or contribute to the open constitutional stack.</p>
+    <div class="hero-ctas">
+      <a class="btn-primary" href="https://github.com/cieobchodzitm-lab/StoicMatrixAitest" target="_blank" rel="noopener">Open StoicMatrixAitest</a>
+      <a class="btn-secondary" href="https://github.com/cieobchodzitm-lab" target="_blank" rel="noopener">All Repositories</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="motto">AD ASTRA UNA</div>
+    <p>Stoic Matrix AI · THE BRIDGE · Angel Guardian Technologies</p>
+    <div class="links">
+      <a href="https://github.com/cieobchodzitm-lab/StoicMatrixAitest">StoicMatrixAitest</a>
+      <a href="https://github.com/cieobchodzitm-lab/the-bridge-virtue-nft">Virtue NFT</a>
+      <a href="https://github.com/cieobchodzitm-lab/PHANTOM_L7">PHANTOM_L7</a>
+      <a href="mailto:phantom@angelguardian.tech">Contact</a>
+    </div>
+    <div class="meta">
+      ConstitutionalAudit trail active · No Pinky · Operator: Zbigniew Szymon Kołacz<br />
+      Generated 2026-08-17 · FOCUSMODE / AGENTOPS
+    </div>
+  </footer>
+</body>
+</html>
