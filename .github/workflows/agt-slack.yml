@@ -15,6 +15,10 @@ on:
 jobs:
   praeco:
     runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      SLACK_WEBHOOK_GH: ${{ secrets.SLACK_WEBHOOK_GH }}
+      SLACK_WEBHOOK_HF: ${{ secrets.SLACK_WEBHOOK_HF }}
     steps:
       - name: Compose
         id: copy
@@ -35,40 +39,34 @@ jobs:
             echo "sha=${SHA:0:12}"
           } >> "$GITHUB_OUTPUT"
 
-      - name: #agt-rnd
-        if: ${{ env.HOOK != '' }}
-        env:
-          HOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Slack agt-rnd
+        if: env.SLACK_WEBHOOK_URL != ''
         continue-on-error: true
         uses: slackapi/slack-github-action@v2.1.1
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
             username: AGT Praeco
             text: "Praeco. GitHub Actions ${{ steps.copy.outputs.status }}. ${{ steps.copy.outputs.note }}. ${{ steps.copy.outputs.sha }} · ${{ steps.copy.outputs.url }}. Per Aspera, Ad Astra · Una"
 
-      - name: #agt-praxis
-        if: ${{ env.HOOK != '' }}
-        env:
-          HOOK: ${{ secrets.SLACK_WEBHOOK_GH }}
+      - name: Slack agt-praxis
+        if: env.SLACK_WEBHOOK_GH != ''
         continue-on-error: true
         uses: slackapi/slack-github-action@v2.1.1
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_GH }}
+          webhook: ${{ env.SLACK_WEBHOOK_GH }}
           webhook-type: incoming-webhook
           payload: |
             username: AGT Praeco
             text: "Praefectus. Action ${{ steps.copy.outputs.status }}. The Bridge · ${{ steps.copy.outputs.sha }} · ${{ steps.copy.outputs.url }}. Per Aspera, Ad Astra · Una"
 
-      - name: #agt-navis
-        if: ${{ env.HOOK != '' }}
-        env:
-          HOOK: ${{ secrets.SLACK_WEBHOOK_HF }}
+      - name: Slack agt-navis
+        if: env.SLACK_WEBHOOK_HF != ''
         continue-on-error: true
         uses: slackapi/slack-github-action@v2.1.1
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_HF }}
+          webhook: ${{ env.SLACK_WEBHOOK_HF }}
           webhook-type: incoming-webhook
           payload: |
             username: AGT Praeco
