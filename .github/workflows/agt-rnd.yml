@@ -20,6 +20,8 @@ jobs:
       - name: Run Praefectus Navis Praeco Tabularius
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_GH: ${{ secrets.SLACK_WEBHOOK_GH }}
+          SLACK_WEBHOOK_HF: ${{ secrets.SLACK_WEBHOOK_HF }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
