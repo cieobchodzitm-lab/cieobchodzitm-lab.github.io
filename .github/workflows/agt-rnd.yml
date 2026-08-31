@@ -28,6 +28,7 @@ jobs:
           DISPATCH_NOTE: ${{ inputs.note }}
         run: python3 scripts/agt_rnd.py
       - name: Commit status to The Bridge
+        if: always()
         run: |
           git config user.name "agt-rnd-bot"
           git config user.email "phantom@angelguardian.tech"
