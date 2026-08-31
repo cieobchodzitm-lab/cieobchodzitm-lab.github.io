@@ -1,0 +1,38 @@
+name: AGT R&D bots
+
+on:
+  schedule:
+    - cron: "0 6 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      note:
+        description: Dispatch note from Diakon
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  fleet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Praefectus Navis Praeco Tabularius
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          DISPATCH_NOTE: ${{ inputs.note }}
+        run: python3 scripts/agt_rnd.py
+      - name: Commit status to The Bridge
+        run: |
+          git config user.name "agt-rnd-bot"
+          git config user.email "phantom@angelguardian.tech"
+          git add rnd/status.json
+          if git diff --cached --quiet; then
+            echo "no status change"
+          else
+            git commit -m "rnd: fleet pulse"
+            git push
+          fi
