@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """AGT R&D fleet — Praefectus, Navis, Praeco, Tabularius.
 
-Writes rnd/status.json. Optional: Slack webhook, Notion page, HF whoami.
-No third-party deps. Secrets come from the environment (GitHub Actions).
+Writes rnd/status.json. Slack: three Incoming Webhooks
+(#agt-rnd, #agt-praxis, #agt-navis). Optional Notion page, HF whoami.
 """
 from __future__ import annotations
 
@@ -18,6 +18,12 @@ STATUS = ROOT / "rnd" / "status.json"
 NOTE = os.environ.get("DISPATCH_NOTE", "").strip()
 NOW = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+SLACK_GATES = (
+    ("rnd", "#agt-rnd", "SLACK_WEBHOOK_URL"),
+    ("praxis", "#agt-praxis", "SLACK_WEBHOOK_GH"),
+    ("navis", "#agt-navis", "SLACK_WEBHOOK_HF"),
+)
+
 
 def get_json(url: str, headers: dict[str, str] | None = None, timeout: int = 20):
     req = urllib.request.Request(url, headers=headers or {"User-Agent": "agt-rnd-bot"})
@@ -32,8 +38,11 @@ def post_json(url: str, payload: dict, headers: dict[str, str] | None = None, ti
         hdrs.update(headers)
     req = urllib.request.Request(url, data=data, headers=hdrs, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as res:
-        raw = res.read().decode("utf-8")
-        return raw
+        return res.read().decode("utf-8")
+
+
+def slack_ok(url: str) -> bool:
+    return url.startswith("https://hooks.slack.com/services/")
 
 
 def praefectus() -> dict:
@@ -76,19 +85,24 @@ def navis() -> dict:
     }
 
 
-def praeco(brief: str) -> dict:
-    url = os.environ.get("SLACK_WEBHOOK_URL", "").strip()
-    if not url:
-        return {"id": "slack", "latin": "Praeco", "ok": False, "detail": "no SLACK_WEBHOOK_URL"}
-    if "hooks.slack.com" not in url:
-        return {"id": "slack", "latin": "Praeco", "ok": False, "detail": "webhook host rejected"}
-    try:
-        post_json(url, {"text": brief, "username": "AGT Praeco"})
-        return {"id": "slack", "latin": "Praeco", "ok": True, "detail": "angelguardiantech #agt-rnd"}
-    except urllib.error.HTTPError as exc:
-        return {"id": "slack", "latin": "Praeco", "ok": False, "detail": f"slack {exc.code}"}
-    except Exception as exc:
-        return {"id": "slack", "latin": "Praeco", "ok": False, "detail": str(exc)[:180]}
+def praeco(brief: str) -> list[dict]:
+    out = []
+    for hid, channel, env in SLACK_GATES:
+        url = os.environ.get(env, "").strip()
+        if not url:
+            out.append({"id": hid, "latin": "Praeco", "ok": False, "detail": f"{channel}: no {env}"})
+            continue
+        if not slack_ok(url):
+            out.append({"id": hid, "latin": "Praeco", "ok": False, "detail": f"{channel}: webhook host rejected"})
+            continue
+        try:
+            post_json(url, {"text": f"{channel} · {brief}", "username": "AGT Praeco"})
+            out.append({"id": hid, "latin": "Praeco", "ok": True, "detail": f"angelguardiantech {channel}"})
+        except urllib.error.HTTPError as exc:
+            out.append({"id": hid, "latin": "Praeco", "ok": False, "detail": f"{channel}: slack {exc.code}"})
+        except Exception as exc:
+            out.append({"id": hid, "latin": "Praeco", "ok": False, "detail": f"{channel}: {str(exc)[:120]}"})
+    return out
 
 
 def tabularius(brief: str) -> dict:
@@ -138,7 +152,7 @@ def main() -> None:
         ]
         if part
     )
-    channels = [praefectus(), navis(), praeco(brief), tabularius(brief)]
+    channels = [praefectus(), navis(), *praeco(brief), tabularius(brief)]
     payload = {
         "at": NOW,
         "house": "Angel Guardian Technologies",
@@ -150,7 +164,7 @@ def main() -> None:
     }
     STATUS.parent.mkdir(parents=True, exist_ok=True)
     STATUS.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"wrote": str(STATUS), "ok": all(c["ok"] for c in channels[:2])}, indent=2))
+    print(json.dumps({"wrote": str(STATUS), "ok": any(c["ok"] for c in channels)}, indent=2))
 
 
 if __name__ == "__main__":
