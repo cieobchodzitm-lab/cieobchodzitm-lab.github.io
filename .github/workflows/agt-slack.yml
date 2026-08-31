@@ -1,0 +1,75 @@
+name: AGT Slack
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: Test ping from Diakon
+        required: false
+  workflow_run:
+    workflows:
+      - AGT R&D bots
+    types:
+      - completed
+
+jobs:
+  praeco:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Compose
+        id: copy
+        env:
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          NOTE: ${{ github.event.inputs.note }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          SELF_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          status="${CONCLUSION:-dispatch}"
+          url="${RUN_URL:-$SELF_URL}"
+          note="${NOTE:-pulse}"
+          {
+            echo "status=$status"
+            echo "url=$url"
+            echo "note=$note"
+            echo "sha=${SHA:0:12}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: #agt-rnd
+        if: ${{ env.HOOK != '' }}
+        env:
+          HOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            username: AGT Praeco
+            text: "Praeco. GitHub Actions ${{ steps.copy.outputs.status }}. ${{ steps.copy.outputs.note }}. ${{ steps.copy.outputs.sha }} · ${{ steps.copy.outputs.url }}. Per Aspera, Ad Astra · Una"
+
+      - name: #agt-praxis
+        if: ${{ env.HOOK != '' }}
+        env:
+          HOOK: ${{ secrets.SLACK_WEBHOOK_GH }}
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_GH }}
+          webhook-type: incoming-webhook
+          payload: |
+            username: AGT Praeco
+            text: "Praefectus. Action ${{ steps.copy.outputs.status }}. The Bridge · ${{ steps.copy.outputs.sha }} · ${{ steps.copy.outputs.url }}. Per Aspera, Ad Astra · Una"
+
+      - name: #agt-navis
+        if: ${{ env.HOOK != '' }}
+        env:
+          HOOK: ${{ secrets.SLACK_WEBHOOK_HF }}
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_HF }}
+          webhook-type: incoming-webhook
+          payload: |
+            username: AGT Praeco
+            text: "Navis. Action ${{ steps.copy.outputs.status }}. Hugging Face probe · ${{ steps.copy.outputs.url }}. Per Aspera, Ad Astra · Una"
