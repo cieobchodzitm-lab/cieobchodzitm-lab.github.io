@@ -6,15 +6,27 @@ Bots for Angel Guardian Technologies · operator Diakon.
 | --- | --- |
 | Praefectus | GitHub · writes `rnd/status.json` on The Bridge |
 | Navis | Hugging Face · probes Cieobchodzitm Spaces |
-| Praeco | Slack `angelguardiantech` · `#agt-rnd` |
+| Praeco | Slack `angelguardiantech` · three Incoming Webhooks |
 | Tabularius | Notion · AGT R&D ledger |
 
-## Secrets (repo Settings → Secrets → Actions)
+## Slack Incoming Webhooks
 
-- `SLACK_WEBHOOK_URL` — Incoming Webhook for `#agt-rnd`
-- `NOTION_TOKEN` — internal integration, share the AGT R&D database
-- `NOTION_DATABASE_ID` — database with a title property `Name`
-- `HF_TOKEN` — write token for Cieobchodzitm (optional; probe works without it)
+Create channels, then add one webhook per channel (Incoming Webhooks → Add New Webhook to Workspace).
+
+| Channel | GitHub secret | Agent |
+| --- | --- | --- |
+| `#agt-rnd` | `SLACK_WEBHOOK_URL` | Praeco · dispatch |
+| `#agt-praxis` | `SLACK_WEBHOOK_GH` | Praefectus · GitHub |
+| `#agt-navis` | `SLACK_WEBHOOK_HF` | Navis · Hugging Face |
+
+App manifest: [`slack-manifest.yaml`](./slack-manifest.yaml) — paste at https://api.slack.com/apps?new_app=1
+
+Workspace: https://angelguardiantech.slack.com/apps/A0F7XDUAZ-incoming-webhooks
+
+## Other secrets
+
+- `NOTION_TOKEN` + `NOTION_DATABASE_ID` (title property `Name`)
+- `HF_TOKEN` — optional write token for Cieobchodzitm
 
 ## Run
 
