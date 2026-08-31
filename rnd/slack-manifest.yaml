@@ -1,0 +1,18 @@
+display_information:
+  name: AGT Praeco
+  description: Herald floty AGT R&D. Angel Guardian Technologies · Diakon.
+  background_color: "#1C1914"
+features:
+  bot_user:
+    display_name: Praeco
+    always_online: false
+  incoming_webhooks: true
+oauth_config:
+  scopes:
+    bot:
+      - incoming-webhook
+      - chat:write
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
