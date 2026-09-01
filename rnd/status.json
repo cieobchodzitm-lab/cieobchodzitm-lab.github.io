@@ -1,9 +1,61 @@
 {
-  "at": "2026-08-31T20:30:00Z",
+  "at": "2026-09-01T11:20:58Z",
   "house": "Angel Guardian Technologies",
   "operator": "Diakon",
   "agent": "agt-project-designer",
-  "note": "fleet seeded",
-  "brief": "AGT R&D fleet standing up on The Bridge.",
-  "channels": []
+  "note": "",
+  "brief": "AGT R&D fleet. \u00b7 Scheduled pulse. \u00b7 Praefectus writes The Bridge. Navis reads Hugging Face. Praeco speaks Slack. Tabularius ledgers Notion. \u00b7 Per Aspera, Ad Astra \u00b7 Una",
+  "channels": [
+    {
+      "id": "gh",
+      "latin": "Praefectus",
+      "ok": true,
+      "detail": "status.json on The Bridge",
+      "repos": [
+        "cieobchodzitm-lab/cieobchodzitm-lab.github.io",
+        "cieobchodzitm-lab/StoicMatrixAitest",
+        "cieobchodzitm-lab/AngelGuardianTechAi"
+      ]
+    },
+    {
+      "id": "hf",
+      "latin": "Navis",
+      "ok": true,
+      "detail": "2 spaces \u00b7 public probe",
+      "spaces": [
+        {
+          "id": "Cieobchodzitm/developer-portfolio-cieobchodzitm",
+          "sdk": "static"
+        },
+        {
+          "id": "Cieobchodzitm/diakon-personal-website",
+          "sdk": "static"
+        }
+      ]
+    },
+    {
+      "id": "rnd",
+      "latin": "Praeco",
+      "ok": false,
+      "detail": "#agt-rnd: no SLACK_WEBHOOK_URL"
+    },
+    {
+      "id": "praxis",
+      "latin": "Praeco",
+      "ok": false,
+      "detail": "#agt-praxis: no SLACK_WEBHOOK_GH"
+    },
+    {
+      "id": "navis",
+      "latin": "Praeco",
+      "ok": false,
+      "detail": "#agt-navis: no SLACK_WEBHOOK_HF"
+    },
+    {
+      "id": "notion",
+      "latin": "Tabularius",
+      "ok": false,
+      "detail": "no Notion secrets"
+    }
+  ]
 }
