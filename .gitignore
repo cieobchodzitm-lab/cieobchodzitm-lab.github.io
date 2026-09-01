@@ -1,0 +1,21 @@
+# Next.js
+.next/
+out/
+node_modules/
+*.tsbuildinfo
+
+# SQLite database (local state)
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Env / secrets
+.env
+.env.local
+.env*.local
+
+# OS / editor
+.DS_Store
+*.log
