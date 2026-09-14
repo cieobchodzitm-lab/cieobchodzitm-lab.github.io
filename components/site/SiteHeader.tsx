@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/cennik", label: "Cennik" },
   { href: "/faq", label: "FAQ" },
   { href: "/kontakt", label: "Kontakt" },
+  { href: "/helmet", label: "PHANTOM DEFENSE" },
 ];
 
 export function SiteHeader() {
