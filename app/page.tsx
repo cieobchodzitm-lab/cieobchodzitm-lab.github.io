@@ -36,6 +36,13 @@ export default async function HomePage() {
         </section>
 
         <div className="card-grid">
+          <Link href="/helmet" className="card" style={{borderLeft: '3px solid #ff7a18', background: 'linear-gradient(135deg, #1a1e26, rgba(255,122,24,0.08))'}}>
+            <h3>◈ PHANTOM DEFENSE — Hełm + NINI Dron</h3>
+            <p>
+              Patrolowy hełm AEGIS Mk.IV z wertykalnym dronem z tyłu. Śmigło toroidalne, silnik magnetyczny z podwójnym rotatorem, doładowanie magnetyczne. SAR ~30 min.
+            </p>
+            <span className="pill pill--gold" style={{marginTop: '0.8rem', display: 'inline-flex'}}>NOWOŚĆ · PROTOTYP Mk.IV</span>
+          </Link>
           <div className="card">
             <h3>◈ System Status</h3>
             <p>
