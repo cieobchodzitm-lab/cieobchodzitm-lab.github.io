@@ -1,8 +1,8 @@
 {
-  "name": "stoic-matrix-bridge",
-  "version": "0.1.0",
+  "name": "l4l7art",
+  "version": "1.0.0",
   "private": true,
-  "description": "Stoic Matrix AI — THE BRIDGE. Full-stack admin & governance console (Next.js 15 + SQLite).",
+  "description": "L4L7art — art studio gallery + shop (Next.js 15 + SQLite). THE BRIDGE console lives under /admin.",
   "engines": {
     "node": ">=22.5.0"
   },

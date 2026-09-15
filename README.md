@@ -1,7 +1,41 @@
-# Stoic Matrix AI — THE BRIDGE
+# L4L7art — Pracownia sztuki (galeria + sklep) · THE BRIDGE
 
-Full-stack admin & governance console for **Stoic Matrix AI** / Angel Guardian Technologies.
-Replaces the earlier static landing page (preserved in [`legacy/`](legacy/index.html)).
+Public site for **L4L7art** — an art studio in Bydgoszcz: unique oil/acrylic
+paintings, museum-grade giclée prints and numbered limited editions, with a
+full shop (cart → checkout → order tracking) in a dark + gold aesthetic.
+
+The original **Stoic Matrix AI — THE BRIDGE** admin & governance console now
+lives under `/admin` (shop orders + messages included) and is documented
+below. The earlier static landing page is preserved in
+[`legacy/`](legacy/index.html).
+
+## L4L7art site map (public, in Polish)
+
+| Page | Route |
+| --- | --- |
+| Homepage (hero, featured works, reviews, newsletter) | `/` |
+| Gallery with filters + sorting | `/galeria` |
+| Artwork detail + add to cart | `/galeria/[slug]` (12 works) |
+| About the artist | `/o-mnie` |
+| Price list (originals, prints, editions, commissions) | `/cennik` |
+| FAQ accordion | `/faq` |
+| Contact (form + studio info) | `/kontakt` |
+| Cart (localStorage) | `/koszyk` |
+| Checkout → confirmation | `/zamowienie` → `/zamowienie/[numer]` |
+| Terms & privacy | `/regulamin`, `/prywatnosc` |
+| SEO | `/sitemap.xml`, `/robots.txt` |
+
+Shop API (public `POST`, validation + server-side pricing from the catalog
+in [`lib/art.ts`](lib/art.ts)):
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| POST | `/api/orders` | place an order → returns `L4L7-YYYY-NNNN` |
+| POST | `/api/contact` | contact-form message → `messages` table |
+| POST | `/api/newsletter` | newsletter signup → `subscribers` table |
+
+Admin additions: `/admin/zamowienia` (orders + `PATCH /api/orders/[id]`
+status flow) and `/admin/wiadomosci` (messages + subscribers).
 
 ## Stack
 
