@@ -35,6 +35,17 @@ export default async function DashboardPage() {
       "SELECT COUNT(DISTINCT username) AS n FROM votes"
     ).get() as { n: number }
   ).n;
+  const newOrders = (
+    db.prepare("SELECT COUNT(*) AS n FROM orders WHERE status = 'nowe'").get() as {
+      n: number;
+    }
+  ).n;
+  const orderTotal = (
+    db.prepare("SELECT COUNT(*) AS n FROM orders").get() as { n: number }
+  ).n;
+  const messageCount = (
+    db.prepare("SELECT COUNT(*) AS n FROM messages").get() as { n: number }
+  ).n;
 
   const services = all<ServiceRow>("SELECT * FROM services ORDER BY id ASC");
 
@@ -73,6 +84,20 @@ export default async function DashboardPage() {
           <div className="label">Audit ledger</div>
           <div className="value">∞</div>
           <div className="delta">append-only</div>
+        </div>
+        <div className="stat-tile">
+          <div className="label">Shop orders</div>
+          <div className="value">{orderTotal}</div>
+          <div className="delta">
+            {newOrders} new · <Link href="/admin/zamowienia">open →</Link>
+          </div>
+        </div>
+        <div className="stat-tile">
+          <div className="label">Shop messages</div>
+          <div className="value">{messageCount}</div>
+          <div className="delta">
+            contact form · <Link href="/admin/wiadomosci">open →</Link>
+          </div>
         </div>
       </div>
 
