@@ -22,6 +22,7 @@ export default async function AdminLayout({
             <Link href="/admin/proposals">Proposals</Link>
             <Link href="/admin/zamowienia">Zamówienia</Link>
             <Link href="/admin/wiadomosci">Wiadomości</Link>
+            <Link href="/agi">Angel Guardian Industry</Link>
           </nav>
           <div className="site-header__user">
             <span>◈ {user}</span>

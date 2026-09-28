@@ -88,6 +88,44 @@ Copy `.env.local.example` → `.env.local` and set a real `BRIDGE_SESSION_SECRET
 ### Audit ledger
 - Every create/edit/delete/check/vote/login is logged with actor, action, detail and timestamp; latest 8 shown on the dashboard, full history via `GET /api/audit`
 
+## Public programme pages (`/agi`)
+
+A public, no-login section that republishes the **Angel Guardian Industry** project
+material (PHANTOM RESCUE, PHANTOM SCOUT, Global Rescue Initiative, crowdfunding, team,
+contact). Reachable from the landing page header and from the "Angel Guardian Industry"
+card on `/`.
+
+| Route | Content |
+| --- | --- |
+| `/agi` | Mission, programmes, claimed results, funding summary, supporters, contacts |
+| `/agi/phantom-rescue` | Described spec, intended users, open questions |
+| `/agi/phantom-scout` | R&D concept and its current (non-)status |
+| `/agi/global-rescue-initiative` | Policy/interoperability proposal pillars |
+| `/agi/crowdfunding` | Goal, milestones, and pre-contribution caveats |
+| `/agi/team` | Founder, open roles, named supporters |
+| `/agi/contact` | Published addresses, locations, website status |
+
+**Verification labels.** Nothing is published as a bare assertion. Every claim carries a
+`ClaimBadge` at one of three levels, defined in `lib/agi-content.ts`:
+
+- `confirmed` — publicly documented or independently checkable
+- `self-reported` — stated by the organisation, not independently validated by this site
+- `planned` — an intention, not a current fact
+
+Deliberate editorial choices, worth knowing before editing:
+
+- All content lives in **`lib/agi-content.ts`** — a single source of truth. Pages render
+  it; they do not hard-code claims. Change a number there and it changes everywhere.
+- **No dead links.** The original material links to ~14 files (`docs/*.md`,
+  `pitch-deck/*.pdf`, `cli/*.md`, `LICENSE.md`) that do not exist in this repository.
+  Those links are omitted and replaced by on-page notes saying the documents are
+  unpublished.
+- **No unverified hyperlinks.** The Zrzutka campaign URL and `www.angelguardian.tech`
+  render as plain text, not anchors, because neither could be confirmed reachable from
+  the build environment. The mailto addresses are linked.
+- The campaign's stated launch window (Q4 2025) is in the past; the page says so rather
+  than presenting the campaign as live.
+
 ## API (all require a session cookie)
 
 | Method | Route | Purpose |
@@ -106,9 +144,9 @@ Copy `.env.local.example` → `.env.local` and set a real `BRIDGE_SESSION_SECRET
 ## Layout
 
 ```
-app/            pages (landing, login, admin dashboard/services/proposals) + API routes
-components/     client components (forms, vote/check buttons, CRUD controls)
-lib/            db.ts (schema+seed), auth.ts (scrypt/HMAC), session.ts, proposals.ts, http.ts
+app/            pages (landing, /agi public pages, login, admin dashboard/services/proposals) + API routes
+components/     client components (forms, vote/check buttons, CRUD controls) + server components (ClaimBadge, AgiPageHead)
+lib/            db.ts (schema+seed), auth.ts (scrypt/HMAC), session.ts, proposals.ts, http.ts, agi-content.ts
 legacy/         the original static landing page
 data/           SQLite database (created at runtime, git-ignored)
 rnd/, scripts/  pre-existing fleet-pulse tooling (unchanged)
