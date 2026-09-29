@@ -60,8 +60,9 @@ export default function TeamPage() {
         ))}
       </div>
       <p className="claim-note">
-        Being named as a supporter in the organisation&apos;s own material is not the same
-        as a confirmed endorsement, contract or partnership.
+        The badges above carry the distinction: TOPR&apos;s partnership is confirmed, while
+        the remaining entries are named in the organisation&apos;s own material and are not
+        the same as a confirmed endorsement, contract or partnership.
       </p>
 
       <div className="spacer" />

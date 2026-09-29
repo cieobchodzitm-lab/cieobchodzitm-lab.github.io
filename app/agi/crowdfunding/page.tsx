@@ -12,8 +12,8 @@ export default function CrowdfundingPage() {
       <AgiPageHead
         eyebrow="Community funding"
         title="Crowdfunding campaign"
-        stage={`Stated launch ${FUNDING.statedLaunch}`}
-        stageLevel={FUNDING.linkLevel}
+        stage={`Campaign ${FUNDING.status} · launched ${FUNDING.statedLaunch}`}
+        stageLevel={FUNDING.statusLevel}
       />
 
       <p className="prose">
@@ -35,10 +35,12 @@ export default function CrowdfundingPage() {
           <div className="value">{FUNDING.goal}</div>
         </div>
         <div className="stat-tile stat-tile--claim">
-          <span className="label">Stated launch</span>
-          <div className="value">{FUNDING.statedLaunch}</div>
+          <span className="label">Status</span>
+          <div className="value">{FUNDING.status}</div>
+          <ClaimBadge level={FUNDING.statusLevel} />
           <p className="claim-note">
-            That window has already passed. Whether the campaign is live is unconfirmed.
+            Launched {FUNDING.statedLaunch}; confirmed open on 2026-09-29. Live totals sit
+            with {FUNDING.platform} and are not mirrored here.
           </p>
         </div>
       </div>
@@ -85,13 +87,16 @@ export default function CrowdfundingPage() {
 
       <div className="card card--flat">
         <h3>Campaign link</h3>
-        <p className="mono">{FUNDING.link}</p>
+        <p className="mono contact-address">
+          <a href={FUNDING.link} target="_blank" rel="noopener noreferrer">
+            {FUNDING.link}
+          </a>
+        </p>
         <ClaimBadge level={FUNDING.linkLevel} withNote />
         <p className="claim-note">
-          The URL is published here as text rather than as a hyperlink because its live
-          status could not be verified when this page was generated. Confirm the campaign
-          page exists, is run by the organisation named on it, and is still open before
-          sending money.
+          The organisation confirms the campaign is open. As with any donation page, check
+          that the page you land on is run by the organisation named on it before sending
+          money.
         </p>
       </div>
 

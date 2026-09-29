@@ -120,11 +120,14 @@ Deliberate editorial choices, worth knowing before editing:
   `pitch-deck/*.pdf`, `cli/*.md`, `LICENSE.md`) that do not exist in this repository.
   Those links are omitted and replaced by on-page notes saying the documents are
   unpublished.
-- **No unverified hyperlinks.** The Zrzutka campaign URL and `www.angelguardian.tech`
-  render as plain text, not anchors, because neither could be confirmed reachable from
-  the build environment. The mailto addresses are linked.
-- The campaign's stated launch window (Q4 2025) is in the past; the page says so rather
-  than presenting the campaign as live.
+- **External links are linked only when confirmed.** The Zrzutka campaign is linked
+  because the organisation confirmed it as open on 2026-09-29.
+  `www.angelguardian.tech` still renders as plain text — the domain could not be
+  confirmed reachable from the build environment. The mailto addresses are linked.
+- The campaign is marked **Open** (`FUNDING.status`), launched Q4 2025. Live totals are
+  not mirrored here; they live on Zrzutka.pl.
+- The **TOPR** partnership is marked `confirmed` (owner-confirmed 2026-09-29). Scope and
+  terms are not published.
 
 ## API (all require a session cookie)
 

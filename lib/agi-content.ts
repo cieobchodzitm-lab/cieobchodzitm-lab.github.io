@@ -100,11 +100,11 @@ export const ACHIEVEMENTS: Claim[] = [
       "Reported across a 100-run internal simulation set. Simulation conditions, ground truth and dataset are not published, and no independent or field validation has been shown.",
   },
   {
-    level: "self-reported",
+    level: "confirmed",
     value: "TOPR",
-    label: "Rescue-service engagement",
+    label: "Rescue-service partnership",
     detail:
-      "A working relationship with TOPR (Tatrzańskie Ochotnicze Pogotowie Ratunkowe) is reported by the founder. Partnership status and terms are not publicly confirmed by TOPR on this site.",
+      "Partnership with TOPR (Tatrzańskie Ochotnicze Pogotowie Ratunkowe) confirmed by the organisation on 2026-09-29. Scope and terms are not published here.",
   },
   {
     level: "self-reported",
@@ -192,7 +192,7 @@ export const PHANTOM_RESCUE = {
     },
   ] as SpecRow[],
   intendedUsers: [
-    "Mountain rescue (TOPR named as an intended partner organisation)",
+    "Mountain rescue — TOPR partnership confirmed (2026-09-29)",
     "Border Guard",
     "Fire service (PSP / OSP units)",
   ],
@@ -245,11 +245,13 @@ export const FUNDING = {
   platform: "Zrzutka.pl",
   goal: "250 000 PLN",
   statedLaunch: "Q4 2025",
+  /** Owner-confirmed campaign status as of 2026-09-29. */
+  status: "Open",
+  statusLevel: "confirmed" as ClaimLevel,
   link: "https://zrzutka.pl/phantom-defense",
-  linkLevel: "planned" as ClaimLevel,
+  linkLevel: "confirmed" as ClaimLevel,
   caveats: [
-    "The stated launch window (Q4 2025) has already passed relative to the current date. Whether the campaign is live, paused, or never launched is not confirmed here.",
-    "The campaign URL could not be verified as active from the environment where this page was generated.",
+    "Campaign status is confirmed as open by the organisation as of 2026-09-29. Live totals and the remaining balance are held by Zrzutka.pl and are not mirrored on this site.",
     "All amounts below are the author's own milestone targets. There is no third-party escrow, milestone audit or delivery guarantee attached to them.",
     "Contributing to a crowdfunding campaign is not an investment and carries no expectation of return.",
   ],
@@ -310,8 +312,8 @@ export const SUPPORTERS = [
   {
     name: "TOPR",
     detail:
-      "Tatrzańskie Ochotnicze Pogotowie Ratunkowe — named as a supporter in the source material.",
-    level: "self-reported" as ClaimLevel,
+      "Tatrzańskie Ochotnicze Pogotowie Ratunkowe — partnership confirmed by the organisation on 2026-09-29.",
+    level: "confirmed" as ClaimLevel,
   },
   {
     name: "Early backers and advisors",

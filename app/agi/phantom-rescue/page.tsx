@@ -54,7 +54,8 @@ export default function PhantomRescuePage() {
         <div className="card card--flat">
           <h3>Intended users</h3>
           <p className="claim-note">
-            These are target audiences, not confirmed customers or signed partners.
+            Mostly target audiences. The exception is TOPR, whose partnership is
+            confirmed — the others are not signed partners.
           </p>
           <ul className="tight-list">
             {p.intendedUsers.map((user) => (

@@ -94,10 +94,10 @@ export default function AgiOverviewPage() {
             {FUNDING.goal} on {FUNDING.platform}
           </p>
           <p>
-            Stated launch window: <strong>{FUNDING.statedLaunch}</strong>. That window has
-            already passed and the campaign&apos;s live status is not confirmed here.
+            Campaign <strong>{FUNDING.status}</strong> · launched{" "}
+            <strong>{FUNDING.statedLaunch}</strong>
           </p>
-          <ClaimBadge level={FUNDING.linkLevel} />
+          <ClaimBadge level={FUNDING.statusLevel} />
         </div>
         <div className="card card--flat">
           <h3>Milestones</h3>
