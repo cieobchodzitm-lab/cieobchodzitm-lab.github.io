@@ -1,11 +1,13 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { GalleryExplorer } from "@/components/site/GalleryExplorer";
+import { socialMetadata } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "Galeria — wszystkie prace",
   description:
     "Przeglądaj wszystkie prace L4L7art: unikatowe obrazy olejne i akrylowe, grafiki muzealne giclée oraz numerowane edycje limitowane z certyfikatem.",
+  ...socialMetadata({ title: "Galeria prac", subtitle: "Kolekcja prac L4L7art", eyebrow: "Galeria" }),
 };
 
 export default function GaleriaPage() {

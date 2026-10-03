@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { ARTWORKS } from "@/lib/art";
-
-const BASE = "https://cieobchodzitm-lab.github.io";
+import { SITE_ORIGIN as BASE } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = [

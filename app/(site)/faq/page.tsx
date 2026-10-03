@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { FaqAccordion, type FaqItem } from "@/components/site/FaqAccordion";
+import { socialMetadata } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "Częste pytania — zakupy, wysyłka, zwroty",
   description:
     "FAQ L4L7art: jak kupić obraz, ile trwa wysyłka, czy prace mają certyfikat, jak działa zwrot 14 dni, oprawa, zamówienia indywidualne i wizyty w pracowni.",
+  ...socialMetadata({ title: "Częste pytania", subtitle: "Zakupy, wysyłka, zwroty", eyebrow: "Pomoc" }),
 };
 
 const GROUPS: { title: string; items: FaqItem[] }[] = [

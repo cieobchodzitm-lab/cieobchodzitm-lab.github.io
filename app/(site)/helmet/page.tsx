@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { HelmetInteractive } from "@/components/HelmetInteractive";
+import { socialMetadata } from "@/lib/og";
 
 export const metadata = {
   title: "PHANTOM DEFENSE - Hełm Patrolowy z NINI Dronem",
   description: "Projekt hełmu patrolowego z pionowym dronem toroidalnym - silnik magnetyczny, podwójny rotator, doładowanie magnetyczne",
+  ...socialMetadata({
+    title: "PHANTOM DEFENSE",
+    subtitle: "Hełm patrolowy z NINI Dronem — MagLev, RAIL-V",
+    eyebrow: "Angel Guardian Technologies",
+  }),
 };
 
 export default function HelmetPage() {

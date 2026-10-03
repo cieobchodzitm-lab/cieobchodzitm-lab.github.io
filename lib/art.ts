@@ -287,7 +287,7 @@ export const ARTWORKS: Artwork[] = [
     pricePln: 1650,
     status: "dostepna",
     edition: "Edycja 15 egz.",
-    image: "/works/ad-astra.jpg",
+    image: "/works/ad-astra.svg",
     description:
       "Gwiezdne niebo w najgłębszej czerni mezzotinty, ze złotą dominantą. „Ad Astra Una” — razem ku gwiazdom. Nastrojowa, kameralna grafika do sypialni i gabinetów.",
     details: [
