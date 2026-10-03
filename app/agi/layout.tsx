@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { AgiNav } from "@/components/AgiNav";
 import { AGI } from "@/lib/agi-content";
+import { socialMetadata } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: {
@@ -12,6 +13,11 @@ export const metadata: Metadata = {
   },
   description:
     "Public overview of Angel Guardian Industry: PHANTOM RESCUE, PHANTOM SCOUT and the Global Rescue Initiative. Claims are labelled as confirmed, self-reported or planned.",
+  ...socialMetadata({
+    title: "Angel Guardian Industry",
+    subtitle: "PHANTOM RESCUE · PHANTOM SCOUT · Global Rescue Initiative",
+    eyebrow: "Public overview",
+  }),
 };
 
 export default function AgiLayout({ children }: { children: React.ReactNode }) {

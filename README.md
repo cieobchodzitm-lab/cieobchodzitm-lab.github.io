@@ -24,6 +24,7 @@ below. The earlier static landing page is preserved in
 | Checkout → confirmation | `/zamowienie` → `/zamowienie/[numer]` |
 | Terms & privacy | `/regulamin`, `/prywatnosc` |
 | SEO | `/sitemap.xml`, `/robots.txt` |
+| Social cards | `/api/og` (dynamic Open Graph images, Edge Function) |
 
 Shop API (public `POST`, validation + server-side pricing from the catalog
 in [`lib/art.ts`](lib/art.ts)):
@@ -144,12 +145,77 @@ Deliberate editorial choices, worth knowing before editing:
 | POST | `/api/proposals/[id]/vote` | cast / change a vote |
 | GET | `/api/audit` | audit ledger (latest 100) |
 
+## Dynamic social cards — `/api/og` (Edge Function)
+
+Every public page ships a generated 1200×630 Open Graph / Twitter card, drawn at
+request time with [`@vercel/og`](https://vercel.com/docs/og-image-generation)
+(satori → resvg, no headless browser). The card follows the studio's dark + gold
+design system and uses the site's own Cinzel fonts for the full Polish
+diacritic set. The TTFs live in [`assets/fonts/`](assets/fonts) (SIL OFL) and are
+inlined as base64 into `lib/og-fonts.ts` by `npm run og:fonts`, so the Edge
+Function never depends on an external font CDN — satori cannot use woff2 and a
+CDN fetch would break behind deployment protection.
+
+```tsx
+// app/api/og/route.tsx
+import { ImageResponse } from "@vercel/og";
+
+export const runtime = "edge";           // Edge Function
+export const dynamic = "force-dynamic";  // per-request title / slug
+
+export async function GET(request: NextRequest) {
+  // …JSX + satori-supported CSS…
+  return new ImageResponse(<div style={{ /* … */ }}>…</div>, {
+    width: 1200,
+    height: 630,
+    emoji: "twemoji",
+    fonts: ogFonts(), // Cinzel 400/700 inlined from lib/og-fonts.ts
+    headers: { "Cache-Control": "public, max-age=3600, s-maxage=86400" },
+  });
+}
+```
+
+| Query | Result |
+| --- | --- |
+| `/api/og` | brand card: logo, tagline, live catalog counters |
+| `/api/og?slug=<artwork>` | artwork card: title, technique, price, availability, photo |
+| `/api/og?title=…&subtitle=…&eyebrow=…&price=…&badge=…` | custom text card (all values sanitised + truncated) |
+
+Wiring: [`lib/og.ts`](lib/og.ts) builds the URLs and metadata blocks, so a page
+only declares its text —
+
+```ts
+import { socialMetadata } from "@/lib/og";
+
+export const metadata: Metadata = {
+  title: "Galeria prac",
+  ...socialMetadata({ title: "Galeria prac", eyebrow: "Galeria" }),
+};
+```
+
+Artwork pages pass `{ slug }` and the card is rendered from the same catalog
+entry (`lib/art.ts`) as the page itself. Root metadata (OG + Twitter card type,
+`og:image:alt`, dimensions) is set in [`app/layout.tsx`](app/layout.tsx);
+`metadataBase`, `sitemap.xml` and `robots.txt` all resolve the origin in
+[`lib/site.ts`](lib/site.ts) (`NEXT_PUBLIC_SITE_URL` → Vercel's
+`VERCEL_PROJECT_PRODUCTION_URL`). `robots.txt` explicitly keeps `/api/og`
+fetchable for social crawlers.
+
+Notes:
+
+- Card images must be served by the same origin as the app (satori fetches
+  them server-side); SVG catalog artwork is replaced by an engraved plate
+  placeholder, and missing photos degrade gracefully.
+- Long titles are clamped per-request (max 120 chars, auto font-size tiers), so
+  the layout cannot overflow.
+
 ## Layout
 
 ```
 app/            pages (landing, /agi public pages, login, admin dashboard/services/proposals) + API routes
+app/api/og/     dynamic Open Graph card generator (Edge Function)
 components/     client components (forms, vote/check buttons, CRUD controls) + server components (ClaimBadge, AgiPageHead)
-lib/            db.ts (schema+seed), auth.ts (scrypt/HMAC), session.ts, proposals.ts, http.ts, agi-content.ts
+lib/            db.ts (schema+seed), auth.ts (scrypt/HMAC), session.ts, proposals.ts, http.ts, agi-content.ts, art.ts (catalog), og.ts (social cards)
 legacy/         the original static landing page
 data/           SQLite database (created at runtime, git-ignored)
 rnd/, scripts/  pre-existing fleet-pulse tooling (unchanged)
@@ -161,6 +227,7 @@ rnd/, scripts/  pre-existing fleet-pulse tooling (unchanged)
 | --- | --- |
 | `BRIDGE_SESSION_SECRET` | HMAC key for session cookies (required in production) |
 | `BRIDGE_ADMIN_USERNAME` / `BRIDGE_ADMIN_PASSWORD` | bootstrap admin, used only at first seed |
+| `NEXT_PUBLIC_SITE_URL` | absolute origin for canonical + OG image URLs (on Vercel it falls back to `VERCEL_PROJECT_PRODUCTION_URL`) |
 
 ## Operator
 

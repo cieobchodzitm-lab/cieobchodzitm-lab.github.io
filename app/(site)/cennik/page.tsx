@@ -1,10 +1,16 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { socialMetadata } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "Cennik — oryginały, grafiki, zamówienia",
   description:
     "Cennik L4L7art: obrazy olejne i akrylowe, grafiki muzealne giclée, edycje limitowane oraz pakiety obrazów na zamówienie. Oprawa, transport i certyfikat.",
+  ...socialMetadata({
+    title: "Cennik",
+    subtitle: "Oryginały, grafiki, edycje i zamówienia indywidualne",
+    eyebrow: "Ceny i pakiety",
+  }),
 };
 
 const PACKAGES = [

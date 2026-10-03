@@ -1,11 +1,13 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { STUDIO } from "@/lib/art";
+import { socialMetadata } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "O mnie — artysta i pracownia",
   description:
     "Poznaj artystę L4L7art: filozofia pracowni, techniki (olej, złoto płatkowe, giclée, grafika warsztatowa), droga twórcza i wizyty w pracowni w Bydgoszczy.",
+  ...socialMetadata({ title: "O mnie", subtitle: "Artysta i pracownia", eyebrow: "Pracownia" }),
 };
 
 const TIMELINE = [

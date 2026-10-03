@@ -10,6 +10,7 @@ import {
 } from "@/lib/art";
 import { ArtworkCard, statusLabel } from "@/components/site/ArtworkCard";
 import { AddToCartButton } from "@/components/site/AddToCartButton";
+import { ogCard, twitterCard } from "@/lib/og";
 
 export function generateStaticParams() {
   return ARTWORKS.map((a) => ({ slug: a.slug }));
@@ -23,10 +24,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const art = getArtwork(slug);
   if (!art) return { title: "Nie znaleziono pracy" };
+  const title = `${art.title} — ${categoryName(art.category)}`;
+  const description = `${art.title} (${art.year}): ${art.technique}, ${art.widthCm}×${art.heightCm} cm. ${art.edition}. ${art.pricePln != null ? `Cena: ${formatPLN(art.pricePln)}.` : ""}`;
+  // Social cards are rendered on demand by the `/api/og` Edge Function,
+  // using this artwork's slug (photo, price, category, availability).
+  const card = { slug: art.slug };
+  const alt = `${art.title} — ${art.technique}`;
   return {
-    title: `${art.title} — ${categoryName(art.category)}`,
-    description: `${art.title} (${art.year}): ${art.technique}, ${art.widthCm}×${art.heightCm} cm. ${art.edition}. ${art.pricePln != null ? `Cena: ${formatPLN(art.pricePln)}.` : ""}`,
-    openGraph: { images: [art.image] },
+    title,
+    description,
+    openGraph: { title, description, images: [ogCard(card, alt)] },
+    twitter: twitterCard(card, alt),
   };
 }
 

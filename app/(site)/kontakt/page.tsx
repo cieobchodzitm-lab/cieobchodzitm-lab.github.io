@@ -2,11 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { STUDIO } from "@/lib/art";
 import { ContactForm } from "@/components/site/ContactForm";
+import { socialMetadata } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "Kontakt — pracownia w Bydgoszczy",
   description:
     "Skontaktuj się z pracownią L4L7art: formularz, e-mail, telefon, godziny wizyt w Bydgoszczy. Odpowiadam zwykle w 24 godziny robocze.",
+  ...socialMetadata({ title: "Kontakt", subtitle: "Pracownia w Bydgoszczy", eyebrow: "Napisz" }),
 };
 
 export default function KontaktPage() {

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { ogCard, twitterCard } from "@/lib/og";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://cieobchodzitm-lab.github.io"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "L4L7art — Pracownia sztuki | Obrazy, grafiki, edycje limitowane",
     template: "%s · L4L7art",
@@ -26,8 +28,9 @@ export const metadata: Metadata = {
     title: "L4L7art — Pracownia sztuki",
     description:
       "Unikatowe obrazy, grafiki muzealne i edycje limitowane z certyfikatem. Gdzie struktura spotyka ducha.",
-    images: ["/works/silentium-aurum.jpg"],
+    images: [ogCard()],
   },
+  twitter: twitterCard(),
 };
 
 export default function RootLayout({
