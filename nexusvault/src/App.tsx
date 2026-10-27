@@ -215,7 +215,7 @@ export default function App() {
 
       {tab === "wallet" && (
         <div className="grid grid--2">
-          <Dashboard state={state} onFaucet={faucet} faucetBusy={false} />
+          <Dashboard state={state} onFaucet={faucet} />
           <div className="stack">
             <section className="card">
               <div className="card__head">
@@ -242,7 +242,7 @@ export default function App() {
 
       {tab === "send" && (
         <div className="grid grid--2">
-          <SendForm state={state} onSend={send} busy={false} />
+          <SendForm state={state} onSend={send} />
           <TxList state={state} onFail={failTx} />
         </div>
       )}

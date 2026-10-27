@@ -18,17 +18,15 @@ export function Header({ state, onNetworkChange, onCopy, onReset }: HeaderProps)
   const [copied, setCopied] = useState(false);
   const network = NETWORKS[state.networkId];
 
+  // Schowek może być zablokowany przez przeglądarkę — wtedy pokazujemy
+  // tylko potwierdzenie wizualne, bez rzucania błędem.
   const copyAddress = async () => {
-    await onCopyValue(state.address);
-  };
-
-  const onCopyValue = async (value: string) => {
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(state.address);
     } catch {
-      // Brak uprawnień do schowka — i tak pokazujemy potwierdzenie wizualne.
+      // ignorujemy
     }
-    onCopy(value, "Adres skopiowany");
+    onCopy(state.address, "Adres skopiowany");
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   };

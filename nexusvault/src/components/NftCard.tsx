@@ -1,7 +1,6 @@
 import { useMemo } from "react";
-import { RARITIES, type Nft } from "../lib/chain";
+import { ASSETS, RARITIES, type Nft } from "../lib/chain";
 import { formatUsd, paletteFor } from "../lib/crypto-demo";
-import { ASSETS } from "../lib/chain";
 
 type NftCardProps = {
   nft: Nft;

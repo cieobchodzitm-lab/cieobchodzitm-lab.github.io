@@ -4,7 +4,6 @@ import { priceSeries } from "../lib/crypto-demo";
 type SparklineProps = {
   seed: string;
   points?: number;
-  accent?: string;
   width?: number;
   height?: number;
 };
@@ -13,7 +12,6 @@ type SparklineProps = {
 export function Sparkline({
   seed,
   points = 40,
-  accent = "#7c5cff",
   width = 240,
   height = 56,
 }: SparklineProps) {
@@ -66,7 +64,6 @@ export function Sparkline({
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      <circle cx={width} cy="0" r="0" fill={accent} />
     </svg>
   );
 }

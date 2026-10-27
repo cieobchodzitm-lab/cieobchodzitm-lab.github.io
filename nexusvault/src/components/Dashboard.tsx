@@ -15,10 +15,9 @@ import { Sparkline } from "./Sparkline";
 type DashboardProps = {
   state: VaultState;
   onFaucet: () => void;
-  faucetBusy: boolean;
 };
 
-export function Dashboard({ state, onFaucet, faucetBusy }: DashboardProps) {
+export function Dashboard({ state, onFaucet }: DashboardProps) {
   const total = portfolioUsd(state);
   const liquid = balanceUsd(state);
   const collectionNex = nftValueNex(state);
@@ -101,10 +100,9 @@ export function Dashboard({ state, onFaucet, faucetBusy }: DashboardProps) {
           type="button"
           className="btn btn--block"
           style={{ marginTop: 14 }}
-          disabled={faucetBusy}
           onClick={onFaucet}
         >
-          {faucetBusy ? "Dolewanie…" : `Kran testowy · +${FAUCET_AMOUNT_NEX} NEX`}
+          Kran testowy · +{FAUCET_AMOUNT_NEX} NEX
         </button>
         <p className="muted tiny" style={{ marginBottom: 0 }}>
           Kran działa tylko w tym demo — dolewa wirtualne NEX na opłaty sieciowe.

@@ -11,11 +11,10 @@ import { formatUsd, round6 } from "../lib/crypto-demo";
 type SendFormProps = {
   state: VaultState;
   onSend: (input: { to: string; asset: AssetId; amount: number }) => void;
-  busy: boolean;
   prefillTo?: string;
 };
 
-export function SendForm({ state, onSend, busy, prefillTo = "" }: SendFormProps) {
+export function SendForm({ state, onSend, prefillTo = "" }: SendFormProps) {
   const [to, setTo] = useState(prefillTo);
   const [asset, setAsset] = useState<AssetId>("NEX");
   const [amount, setAmount] = useState("");
@@ -133,9 +132,9 @@ export function SendForm({ state, onSend, busy, prefillTo = "" }: SendFormProps)
           type="submit"
           className="btn btn--primary btn--block"
           style={{ marginTop: 14 }}
-          disabled={busy || error != null}
+          disabled={error != null}
         >
-          {busy ? "Wysyłanie…" : "Wyślij"}
+          Wyślij
         </button>
       </form>
     </section>
