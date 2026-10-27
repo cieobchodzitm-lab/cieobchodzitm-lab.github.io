@@ -1,0 +1,17 @@
+{
+  "//": "Type-checking for the standalone Node scripts (scripts/*.tsx). The root tsconfig excludes them so `next build` never type-checks build tooling, and it sets `jsx: preserve` (fine for Next, fatal for esbuild/tsx).",
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "noEmit": true,
+    "incremental": false,
+    "paths": {
+      "@/*": ["../*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx", "../lib/**/*.ts", "../lib/**/*.tsx"],
+  "exclude": []
+}

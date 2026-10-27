@@ -1,0 +1,34 @@
+# Weryfikacja builda. Vercel przestał reagować na pushe (ostatni deploy 2.10),
+# więc przynajmniej chcemy wiedzieć, że kod się buduje, zanim w ogóle dojdzie
+# do deployu.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      # --include=dev: `prebuild` (npm run og) potrzebuje tsx z devDependencies.
+      # Bez tego build kończy się kodem 127 jeszcze przed kompilacją.
+      - run: npm ci --include=dev
+
+      - name: Kontrola typów (aplikacja + skrypty builda)
+        run: npm run typecheck
+
+      # prebuild  → generuje statyczne karty OG do public/og/
+      # build     → Next.js
+      # postbuild → og:check (karty istnieją + żadna strona nie celuje w /api/og)
+      - name: Build
+        run: npm run build

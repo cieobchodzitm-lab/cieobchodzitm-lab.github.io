@@ -159,6 +159,52 @@ function migrate(d: DatabaseSync): void {
 
     CREATE INDEX IF NOT EXISTS idx_votes_proposal ON votes(proposal_id);
     CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_log(created_at DESC);
+
+    -- L4L7art shop ------------------------------------------------
+    CREATE TABLE IF NOT EXISTS orders (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      numer      TEXT NOT NULL UNIQUE,
+      imie       TEXT NOT NULL,
+      email      TEXT NOT NULL,
+      telefon    TEXT NOT NULL DEFAULT '',
+      adres      TEXT NOT NULL DEFAULT '',
+      miasto     TEXT NOT NULL DEFAULT '',
+      kod        TEXT NOT NULL DEFAULT '',
+      dostawa    TEXT NOT NULL DEFAULT 'kurier',
+      platnosc   TEXT NOT NULL DEFAULT 'przelew',
+      uwagi      TEXT NOT NULL DEFAULT '',
+      suma       REAL NOT NULL DEFAULT 0,
+      status     TEXT NOT NULL DEFAULT 'nowe',
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS order_items (
+      id       INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      slug     TEXT NOT NULL,
+      tytul    TEXT NOT NULL,
+      cena     REAL NOT NULL,
+      ilosc    INTEGER NOT NULL DEFAULT 1
+    );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      imie        TEXT NOT NULL,
+      email       TEXT NOT NULL,
+      temat       TEXT NOT NULL DEFAULT '',
+      wiadomosc   TEXT NOT NULL,
+      created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+      przeczytana INTEGER NOT NULL DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      email      TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+    CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
   `);
 }
 

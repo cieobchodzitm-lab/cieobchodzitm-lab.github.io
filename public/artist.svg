@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img" aria-label="Pracownia L4L7art — sztaluga ze złotym obrazem w mroku">
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2f38"/>
+      <stop offset="55%" stop-color="#14171d"/>
+      <stop offset="100%" stop-color="#0c0e12"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f2e3a1"/>
+      <stop offset="50%" stop-color="#d4af37"/>
+      <stop offset="100%" stop-color="#a88b2a"/>
+    </linearGradient>
+    <radialGradient id="spot" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#d4af37" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="1000" fill="#0c0e12"/>
+  <rect width="800" height="1000" fill="url(#spot)"/>
+  <!-- back wall frame hints -->
+  <g fill="none" stroke="#2a2f38" stroke-width="4">
+    <rect x="90" y="120" width="140" height="180"/>
+    <rect x="580" y="140" width="120" height="150"/>
+  </g>
+  <!-- easel -->
+  <g stroke="#3a3f47" stroke-width="14" stroke-linecap="round">
+    <line x1="330" y1="880" x2="390" y2="420"/>
+    <line x1="470" y1="880" x2="410" y2="420"/>
+    <line x1="400" y1="880" x2="400" y2="330"/>
+    <line x1="270" y1="640" x2="530" y2="640" stroke-width="10"/>
+  </g>
+  <!-- canvas -->
+  <rect x="250" y="330" width="300" height="300" fill="url(#canvas)" stroke="#d4af37" stroke-opacity="0.6" stroke-width="3"/>
+  <!-- gold vein on canvas -->
+  <path d="M400 330 C 380 400 420 440 395 510 C 375 565 405 600 398 630" fill="none" stroke="url(#gold)" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="395" cy="470" r="5" fill="#f2e3a1"/>
+  <!-- palette table -->
+  <rect x="560" y="700" width="150" height="14" fill="#3a3f47"/>
+  <rect x="575" y="714" width="12" height="120" fill="#2a2f38"/>
+  <rect x="683" y="714" width="12" height="120" fill="#2a2f38"/>
+  <ellipse cx="600" cy="688" rx="34" ry="12" fill="#1a1e26" stroke="#d4af37" stroke-opacity="0.5"/>
+  <circle cx="588" cy="686" r="4" fill="#d4af37"/>
+  <circle cx="600" cy="684" r="4" fill="#a88b2a"/>
+  <circle cx="612" cy="687" r="4" fill="#f2e3a1"/>
+  <!-- floor shadow -->
+  <ellipse cx="400" cy="905" rx="240" ry="26" fill="#000" opacity="0.55"/>
+  <!-- monogram -->
+  <text x="400" y="965" text-anchor="middle" fill="#d4af37" font-family="Georgia,serif" font-size="30" letter-spacing="10">L4L7</text>
+</svg>

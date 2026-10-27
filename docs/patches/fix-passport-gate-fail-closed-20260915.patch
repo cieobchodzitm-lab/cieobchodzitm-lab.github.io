@@ -1,0 +1,423 @@
+From 3a7b4a298d9ad568118c0bb1b76196831174ff68 Mon Sep 17 00:00:00 2001
+From: arena-agent <arena@agent.local>
+Date: Mon, 14 Sep 2026 22:27:33 +0000
+Subject: [PATCH] =?UTF-8?q?fix(security):=20fail-closed=20mint=20gate=20?=
+ =?UTF-8?q?=E2=80=94=20audit=20C-1/C-2/C-3=20(2026-09-15)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+1. passport_bridge: verify_passport fails closed when no trusted
+   Ed25519 public key is configured (structural_only=True is the
+   documented dev/test escape hatch only).
+2. passport mint: no-passport demo path now requires explicit
+   CNOTA_DEMO_MODE=1 (default off) — public API cannot queue mints
+   without a verified passport.
+3. Virtue scores are read server-side (services/cnota_scores.py),
+   client-supplied virtue_scores field removed from MintRequest.
+
+Adds backend/tests/test_passport_gate.py: 12 tests (fail-closed key,
+signature pass/fail, tamper, replay window, demo gate, server scores).
+All 12 passing on Python 3.11.
+
+ConstitutionalAudit: audit-20260915-technical-security :: L1_SECURITY ::
+enforcementBinding=REQUIRE_HUMAN -> fixes applied pre-RDV-Phase-1.
+---
+ backend/routers/cnota.py            |  18 +--
+ backend/routers/passport.py         |  39 ++++---
+ backend/services/cnota_scores.py    |  32 ++++++
+ backend/services/passport_bridge.py |  19 +++-
+ backend/tests/__init__.py           |   0
+ backend/tests/test_passport_gate.py | 166 ++++++++++++++++++++++++++++
+ 6 files changed, 243 insertions(+), 31 deletions(-)
+ create mode 100644 backend/services/cnota_scores.py
+ create mode 100644 backend/tests/__init__.py
+ create mode 100644 backend/tests/test_passport_gate.py
+
+diff --git a/backend/routers/cnota.py b/backend/routers/cnota.py
+index e2cded6..529d16d 100644
+--- a/backend/routers/cnota.py
++++ b/backend/routers/cnota.py
+@@ -1,8 +1,9 @@
+ """CNOTA virtue scoring router."""
+-import random
+ from fastapi import APIRouter, Query
+ from pydantic import BaseModel
+ 
++from services.cnota_scores import get_virtue_scores
++
+ router = APIRouter()
+ 
+ MOCK_NAMES = [
+@@ -12,18 +13,9 @@ MOCK_NAMES = [
+ 
+ 
+ def _mock_virtues(seed: str) -> dict:
+-    rng = random.Random(seed)
+-    sophia = rng.randint(55, 99)
+-    andreia = rng.randint(50, 99)
+-    dikaiosyne = rng.randint(55, 99)
+-    sophrosyne = rng.randint(50, 99)
+-    return {
+-        "sophia": sophia,
+-        "andreia": andreia,
+-        "dikaiosyne": dikaiosyne,
+-        "sophrosyne": sophrosyne,
+-        "total_score": sophia + andreia + dikaiosyne + sophrosyne,
+-    }
++    # Delegate to the shared server-side source of truth (audit C-3).
++    scores = get_virtue_scores(seed) or {}
++    return {**scores, "total_score": sum(scores.values())}
+ 
+ 
+ @router.get("/api/cnota/profile/{user_id}")
+diff --git a/backend/routers/passport.py b/backend/routers/passport.py
+index c583b33..199553c 100644
+--- a/backend/routers/passport.py
++++ b/backend/routers/passport.py
+@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
+ from fastapi import APIRouter, HTTPException
+ from pydantic import BaseModel, Field
+ 
++from services.cnota_scores import get_virtue_scores
+ from services.passport_bridge import (
+     VerificationResult,
+     prepare_mint_payload,
+@@ -82,10 +83,8 @@ class MintRequest(BaseModel):
+         None,
+         description="Signed AGT-VIRTUE-PASSPORT-v1 object from phantom-crypto-core",
+     )
+-    virtue_scores: Optional[Dict[str, int]] = Field(
+-        None,
+-        description="Optional override of the four cardinal virtues",
+-    )
++    # NOTE (audit 2026-09-06, C-3): client-supplied virtue scores were removed.
++    # Scores come exclusively from the server-side CNOTA source of truth.
+ 
+ 
+ @router.post("/api/passport/mint")
+@@ -95,10 +94,12 @@ async def mint_passport(request: MintRequest):
+ 
+     Production path:
+       - signed_passport must be present and verify as TRUSTED
++        (signature verification is mandatory — fail-closed, audit C-2)
++      - virtue scores are read server-side from CNOTA (audit C-3)
+       - then prepare_mint_payload → real Anchor call (the-bridge-virtue-nft)
+ 
+-    Demo path (no signed_passport):
+-      - falls back to mock queue (backward compatible)
++    Demo path (CNOTA_DEMO_MODE=1 only, default OFF — audit C-1):
++      - no signed passport → mock queue (backward-compatible demo)
+     """
+     tx_id = f"tx_{uuid.uuid4().hex[:16]}"
+ 
+@@ -119,12 +120,13 @@ async def mint_passport(request: MintRequest):
+                 },
+             )
+ 
+-        scores = request.virtue_scores or {
+-            "sophia": 80,
+-            "andreia": 75,
+-            "dikaiosyne": 85,
+-            "sophrosyne": 78,
+-        }
++        # Scores are server-attested (CNOTA), never client-supplied (audit C-3).
++        scores = get_virtue_scores(request.user_id)
++        if scores is None:
++            raise HTTPException(
++                status_code=404,
++                detail={"error": "no_virtue_profile", "user_id": request.user_id},
++            )
+         payload = prepare_mint_payload(result, request.user_id, scores)
+ 
+         # TODO: real Solana RPC call using solana-py / anchorpy
+@@ -149,7 +151,18 @@ async def mint_passport(request: MintRequest):
+             ),
+         }
+ 
+-    # --- Demo / backward-compatible path ---
++    # --- Demo / backward-compatible path (explicit opt-in, audit C-1) ---
++    if os.getenv("CNOTA_DEMO_MODE", "0").strip() != "1":
++        raise HTTPException(
++            status_code=403,
++            detail={
++                "error": "signed_passport_required",
++                "detail": (
++                    "Mint requires a verified AGT-VIRTUE-PASSPORT-v1. "
++                    "Demo mode is disabled (set CNOTA_DEMO_MODE=1 for demos only)."
++                ),
++            },
++        )
+     return {
+         "status": "queued",
+         "tx_id": tx_id,
+diff --git a/backend/services/cnota_scores.py b/backend/services/cnota_scores.py
+new file mode 100644
+index 0000000..680fec2
+--- /dev/null
++++ b/backend/services/cnota_scores.py
+@@ -0,0 +1,32 @@
++"""cnota_scores.py — server-side virtue score source of truth.
++
++Mint and scoring endpoints MUST read scores from here, never from the
++client request body (audit 2026-09-06, finding C-3: self-attested scores
++= plutocratic farming vector).
++
++Currently: deterministic placeholder (CNOTA ledger not yet wired).
++TODO(L3): replace with CNOTA registry lookup + attestation ref.
++"""
++from __future__ import annotations
++
++import random
++from typing import Dict, Optional
++
++CARDINAL_VIRTUES = ("sophia", "andreia", "dikaiosyne", "sophrosyne")
++
++
++def get_virtue_scores(user_id: str) -> Optional[Dict[str, int]]:
++    """Return server-attested virtue scores for ``user_id``.
++
++    Returns None when no valid profile can be resolved for the id.
++    """
++    uid = (user_id or "").strip()
++    if not uid or len(uid) > 64 or any(ch.isspace() for ch in uid):
++        return None
++    rng = random.Random(uid)
++    return {
++        "sophia": rng.randint(55, 99),
++        "andreia": rng.randint(50, 99),
++        "dikaiosyne": rng.randint(55, 99),
++        "sophrosyne": rng.randint(50, 99),
++    }
+diff --git a/backend/services/passport_bridge.py b/backend/services/passport_bridge.py
+index f95bc09..3264a6b 100644
+--- a/backend/services/passport_bridge.py
++++ b/backend/services/passport_bridge.py
+@@ -60,6 +60,7 @@ def verify_passport(
+     max_age_ms: int = MAX_AGE_MS,
+     now_ms: Optional[int] = None,
+     require_trusted: bool = True,
++    structural_only: bool = False,
+ ) -> VerificationResult:
+     """
+     Verify a signed Virtue Passport.
+@@ -70,10 +71,20 @@ def verify_passport(
+         Must contain domain, fingerprint, signature, algorithm.
+     public_key_pem : str | None
+         PEM-encoded Ed25519 public key. If None, signature check is skipped
+-        (useful only for structural dry-runs; never for production mint).
++        REQUIRED in production: when missing, verification fails closed
++        (structural_only=True is the documented dev/test escape hatch only).
+     require_trusted : bool
+         When True, agentClass must be in ALLOWED_TRUSTED_CLASSES.
++    structural_only : bool
++        TEST/DEV ONLY. When True, a missing public key does not fail and the
++        signature check is skipped (structural dry-run). Never enable in
++        production.
+     """
++    # FAIL-CLOSED (audit 2026-09-06, finding C-2): without a trusted key the
++    # passport must NOT be accepted, regardless of structural validity.
++    if not public_key_pem and not structural_only:
++        return VerificationResult(False, "no trusted public key configured (fail-closed)")
++
+     now = now_ms if now_ms is not None else int(time.time() * 1000)
+ 
+     if signed.get("domain") != DOMAIN:
+@@ -108,7 +119,8 @@ def verify_passport(
+             agent_class=agent_class,
+         )
+ 
+-    # Signature verification (Ed25519)
++    # Signature verification (Ed25519) — always enforced when a key is set;
++    # a missing key with structural_only=True is the documented dev path only.
+     if public_key_pem:
+         try:
+             from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+@@ -129,9 +141,6 @@ def verify_passport(
+             pub.verify(sig, canonical)  # raises InvalidSignature on failure
+         except Exception as exc:
+             return VerificationResult(False, f"invalid signature: {exc}")
+-    else:
+-        # Structural-only mode (development / unit tests)
+-        pass
+ 
+     return VerificationResult(
+         valid=True,
+diff --git a/backend/tests/__init__.py b/backend/tests/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/backend/tests/test_passport_gate.py b/backend/tests/test_passport_gate.py
+new file mode 100644
+index 0000000..7c8e03f
+--- /dev/null
++++ b/backend/tests/test_passport_gate.py
+@@ -0,0 +1,166 @@
++"""Security-gate tests — audit 2026-09-06 findings C-1, C-2, C-3.
++
++Run:  cd backend && python -m pytest tests/ -q
++"""
++from __future__ import annotations
++
++import base64
++import json
++import time
++
++from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
++from cryptography.hazmat.primitives.serialization import (
++    Encoding,
++    PublicFormat,
++)
++from fastapi.testclient import TestClient
++
++import routers.passport as pr
++from main import app
++from services.cnota_scores import get_virtue_scores
++from services.passport_bridge import DOMAIN, verify_passport
++
++client = TestClient(app)
++
++_PRIV = Ed25519PrivateKey.generate()
++_PUB_PEM = _PRIV.public_key().public_bytes(
++    Encoding.PEM, PublicFormat.SubjectPublicKeyInfo
++).decode()
++
++
++def _canonical(obj: dict) -> bytes:
++    return json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()
++
++
++def _make_signed(
++    *,
++    agent_class: str = "TRUSTED",
++    ts_offset_ms: int = 0,
++    domain: str = DOMAIN,
++    tamper: bool = False,
++) -> dict:
++    fingerprint = {
++        "constitutionId": "phantom-v1",
++        "agentClass": agent_class,
++        "scope": ["virtue-passport"],
++        "nonce": "test-nonce-0001",
++        "timestamp": int(time.time() * 1000) + ts_offset_ms,
++    }
++    sig = _PRIV.sign(_canonical({"domain": domain, **fingerprint}))
++    if tamper:
++        # flip the class AFTER signing — signature must no longer verify
++        fingerprint = {**fingerprint, "agentClass": "TRUSTED"}
++    return {
++        "domain": domain,
++        "fingerprint": fingerprint,
++        "signature": base64.b64encode(sig).decode(),
++        "algorithm": "ed25519",
++    }
++
++
++# ---------------- C-2: fail-closed signature verification ----------------
++
++def test_missing_key_fails_closed():
++    res = verify_passport(_make_signed(), public_key_pem=None)
++    assert res.valid is False
++    assert "fail-closed" in res.reason
++
++
++def test_structural_only_dev_mode_documented_escape():
++    res = verify_passport(_make_signed(), public_key_pem=None, structural_only=True)
++    assert res.valid is True
++
++
++def test_valid_signature_passes():
++    res = verify_passport(_make_signed(), public_key_pem=_PUB_PEM)
++    assert res.valid is True
++    assert res.agent_class == "TRUSTED"
++
++
++def test_wrong_domain_rejected():
++    res = verify_passport(_make_signed(domain="EVIL-DOMAIN"), public_key_pem=_PUB_PEM)
++    assert res.valid is False
++    assert res.reason == "domain mismatch"
++
++
++def test_stale_timestamp_rejected():
++    res = verify_passport(
++        _make_signed(ts_offset_ms=-20 * 60 * 1000), public_key_pem=_PUB_PEM
++    )
++    assert res.valid is False
++    assert "freshness" in res.reason
++
++
++def test_tampered_fingerprint_rejected():
++    signed = _make_signed(agent_class="UNTRUSTED", tamper=True)
++    res = verify_passport(signed, public_key_pem=_PUB_PEM)
++    assert res.valid is False
++    assert "invalid signature" in res.reason
++
++
++def test_untrusted_class_rejected():
++    res = verify_passport(_make_signed(agent_class="UNTRUSTED"), public_key_pem=_PUB_PEM)
++    assert res.valid is False
++    assert "not TRUSTED" in res.reason
++
++
++# ---------------- C-1: mint gate (demo path opt-in) ----------------
++
++def test_mint_without_passport_fails_closed():
++    res = client.post("/api/passport/mint", json={"user_id": "user_001"})
++    assert res.status_code == 403
++    assert res.json()["detail"]["error"] == "signed_passport_required"
++
++
++def test_mint_without_passport_demo_mode(monkeypatch):
++    monkeypatch.setenv("CNOTA_DEMO_MODE", "1")
++    res = client.post("/api/passport/mint", json={"user_id": "user_001"})
++    assert res.status_code == 200
++    assert res.json()["status"] == "queued"
++
++
++# ---------------- C-3: server-side virtue scores ----------------
++
++def test_mint_valid_passport_uses_server_scores(monkeypatch):
++    monkeypatch.setattr(pr, "_PUBLIC_KEY_PEM", _PUB_PEM)
++    uid = "user_042"
++    res = client.post(
++        "/api/passport/mint",
++        json={"user_id": uid, "signed_passport": _make_signed()},
++    )
++    assert res.status_code == 200, res.text
++    body = res.json()
++    assert body["verification"]["agent_class"] == "TRUSTED"
++    expected = get_virtue_scores(uid)
++    assert body["mint_payload"]["virtue_scores"] == expected
++    assert body["mint_payload"]["virtue_score_total"] == sum(expected.values())
++
++
++def test_client_supplied_scores_are_ignored(monkeypatch):
++    monkeypatch.setattr(pr, "_PUBLIC_KEY_PEM", _PUB_PEM)
++    uid = "user_042"
++    res = client.post(
++        "/api/passport/mint",
++        json={
++            "user_id": uid,
++            "signed_passport": _make_signed(),
++            "virtue_scores": {"sophia": 1, "andreia": 1, "dikaiosyne": 1, "sophrosyne": 1},
++        },
++    )
++    assert res.status_code == 200
++    body = res.json()
++    expected = get_virtue_scores(uid)
++    assert body["mint_payload"]["virtue_scores"] == expected
++    assert body["mint_payload"]["virtue_scores"] != {
++        "sophia": 1, "andreia": 1, "dikaiosyne": 1, "sophrosyne": 1
++    }
++
++
++def test_mint_invalid_passport_rejected(monkeypatch):
++    monkeypatch.setattr(pr, "_PUBLIC_KEY_PEM", _PUB_PEM)
++    res = client.post(
++        "/api/passport/mint",
++        json={"user_id": "user_001", "signed_passport": _make_signed(agent_class="UNTRUSTED")},
++    )
++    assert res.status_code == 403
++    assert res.json()["detail"]["error"] == "passport_verification_failed"
+-- 
+2.39.5
+
