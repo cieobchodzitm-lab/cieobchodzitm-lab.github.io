@@ -37,21 +37,25 @@ wariantu bez parametrów.
 (500 występuje też bez wywołania tej funkcji), odczyt plików (fonty są
 wbase64 i dekodowane przez `atob`), przekroczenie limitu rozmiaru funkcji.
 
-**Najbardziej prawdopodobne:** `@vercel/og` **1.0.3** uruchamiany na Edge
-runtime pod Next 15.5 (inicjalizacja WASM/resvg na infrastrukturze Vercela).
-To **hipoteza, nie potwierdzenie** — bez logów z dashboardu nie da się tego
-domknąć.
+**Różnicowy czynnik:** to jedyna trasa na Edge runtime w całym projekcie.
 
-Jak to sprawdzić (2 minuty):
+### Co już próbowaliśmy (kronika, żeby nie wracać)
+
+1. **`next/og` zamiast `@vercel/og`** (commit `d401f0b`) — wyrzuciliśmy
+   zewnętrzną zależność, bundle i wynikowe PNG zostały identyczne co do bajtu,
+   lokalnie 200. **Na produkcji nadal 500.** Hipoteza o wadliwym pakiecie
+   `@vercel/og` nie potwierdziła się.
+2. **`runtime = "nodejs"`** — trasa renderuje się w funkcji Node. Karty
+   wychodzą identyczne co do bajtu jak na Edge (ten sam satori/resvg), a
+   wszystkie pozostałe funkcje Node w tym projekcie odpowiadają poprawnie.
+
+Wniosek praktyczny: skoro ta trasa jako Edge zwraca 500, a funkcje Node w tym
+projekcie działają, trzymamy ją na Node runtime.
+
+Jak potwierdzić definitywnie (2 minuty):
 **Vercel → projekt → Deployments → ostatni → Functions → `/api/og` → Logs.**
-
-Kierunki naprawy, gdy logi to potwierdzą:
-
-1. **Przejście na `next/og`** — Next 15 ma wbudowany `ImageResponse`
-   (`import { ImageResponse } from "next/og"`), co pozwala wyrzucić zależność
-   `@vercel/og`. Najlepiej wspierana ścieżka dla tego Nexta.
-2. **Albo `export const runtime = "nodejs"`** w `app/api/og/route.tsx` — trasy na
-   Node działają w tym projekcie bez zarzutu (patrz `/api/orders`).
+Tam jest konkretny wyjątek — dotąd nie mieliśmy do nich dostępu, więc
+powyższe opiera się na eliminacji, nie na odczycie błędu.
 
 ## Co zostało naprawione w repo (ten PR)
 

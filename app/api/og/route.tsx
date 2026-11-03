@@ -27,8 +27,12 @@ import {
  * version Next ships and bundles itself.
  */
 
-// Edge Function — runs close to the visitor, no Node runtime needed.
-export const runtime = "edge";
+// Node runtime, nie Edge: na produkcji (Vercel) trasa zwracała HTTP 500 jako
+// jedyna funkcja Edge w projekcie, podczas gdy wszystkie funkcje Node
+// odpowiadają poprawnie (np. /api/orders → 200). Lokalnie działały oba
+// warianty — różnica wychodziła dopiero na infrastrukturze Vercela.
+// `next/og` działa na Node runtime bez zmiany kodu renderowania.
+export const runtime = "nodejs";
 
 // Cards are generated per request (title/slug come from the query string).
 export const dynamic = "force-dynamic";

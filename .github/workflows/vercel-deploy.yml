@@ -1,23 +1,20 @@
-# Deploy na Vercel z GitHub Actions — obejście dla niedziałającej integracji Git.
+# Deploy na Vercel z GitHub Actions — plan B, uruchamiany RĘCZNIE.
 #
-# Objaw: Vercel nie deployuje nic od 2.10, mimo że na `main` codziennie lądują
-# commity (bot `agt-rnd-bot`). Wygląda na to, że nie działa wyzwalacz pushy
-# (webhook / GitHub App), a nie że build się sypie. Ten workflow nie potrzebuje
-# integracji Git — deployuje samym CLI, a Actions w tym repo działają (codzienne
-# commity bota właśnie stąd idą).
+# Ważne: uruchamia się wyłącznie z `workflow_dispatch`, bo integracja Git
+# Vercela działa (sprawdzone 2026-11-03: każdy push do `main` kończy się
+# deploymentem „Production – cieobchodzitm-lab.github.io"). Włączanie tego na
+# push skutkowałoby podwójnym deployem — a bez secretów każdy push byłby
+# czerwony, więc domyślnie jest wyłączony.
+#
+# Jak użyć: Actions → Deploy to Vercel → Run workflow.
 #
 # Wymagane secrets (Settings → Secrets and variables → Actions):
 #   VERCEL_TOKEN      — vercel.com/account/tokens → Create
 #   VERCEL_ORG_ID     — z .vercel/project.json po `npx vercel link`
 #   VERCEL_PROJECT_ID — jw.
-#
-# Jeśli Vercel deployuje normalnie, zostaw ten workflow wyłączony (albo usuń
-# plik) — inaczej każdy push zdeployuje się dwa razy.
 name: Deploy to Vercel
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -40,6 +37,17 @@ jobs:
         run: |
           npm ci --include=dev
           npm run build
+
+      - name: Sprawdź secrety
+        run: |
+          missing=""
+          for var in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!var}" ]; then missing="$missing $var"; fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Brakuje secretów:$missing — dodaj je w Settings → Secrets and variables → Actions."
+            exit 1
+          fi
 
       # Build po stronie Vercela. Gdyby sypał się tamtejszy builder, zamień na
       # wariant z `--prebuilt`: `npx vercel build --prod` + `npx vercel deploy
