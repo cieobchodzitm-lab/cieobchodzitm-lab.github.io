@@ -1,4 +1,4 @@
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { ogFonts } from "@/lib/og-fonts";
 import {
@@ -19,7 +19,12 @@ import {
  *   GET /api/og?slug=silentium-aurum             → artwork card (photo + price)
  *
  * Optional query params: `eyebrow`, `subtitle`, `price`, `badge`.
- * Rendered with @vercel/og (satori) — no browser, runs as an Edge Function.
+ * Rendered with satori — no browser, runs as an Edge Function.
+ *
+ * `ImageResponse` comes from `next/og` (built into Next), not from the
+ * standalone `@vercel/og` package: the external one returned HTTP 500 on
+ * Vercel's Edge runtime with Next 15 while working locally, so we use the
+ * version Next ships and bundles itself.
  */
 
 // Edge Function — runs close to the visitor, no Node runtime needed.

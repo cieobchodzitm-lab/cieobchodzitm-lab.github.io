@@ -1,0 +1,5 @@
+# Zależności i wyniki budowania NexusVault (podprojekt Vite)
+node_modules/
+dist/
+*.local
+*.log

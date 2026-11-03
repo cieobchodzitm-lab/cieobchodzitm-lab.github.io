@@ -1,0 +1,58 @@
+# Weryfikacja builda. Vercel przestał reagować na pushe (ostatni deploy 2.10),
+# więc przynajmniej chcemy wiedzieć, że kod się buduje, zanim w ogóle dojdzie
+# do deployu.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # Strona Next.js. Celowo tylko install + build: repo nie ma skryptu
+  # `typecheck`, a `next build` i tak robi kontrolę typów w ramach kompilacji.
+  site:
+    name: Strona (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      # --include=dev: Next potrzebuje typescript i @types w czasie budowania.
+      - run: npm ci --include=dev
+
+      - name: Build
+        run: npm run build
+
+  # NexusVault to osobny projekt Vite w podkatalogu — własne zależności,
+  # własny tsconfig, własne testy. Budujemy go niezależnie od strony.
+  nexusvault:
+    name: NexusVault (Vite)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nexusvault
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: nexusvault/package-lock.json
+
+      - run: npm ci
+
+      - name: Kontrola typów
+        run: npm run typecheck
+
+      - name: Testy
+        run: npm test
+
+      - name: Build
+        run: npm run build

@@ -17,5 +17,9 @@
     "paths": { "@/*": ["./*"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "legacy", "rnd", "scripts"]
+  // nexusvault/ to osobny projekt Vite z własnym package.json. Bez tego
+  // wykluczenia `next build` typecheckowałby jego pliki, a główny `npm ci`
+  // nie instaluje vitest ani @testing-library — build kończyłby się 7 błędami
+  // TS2307 „Cannot find module" (sprawdzone kontrfaktycznie).
+  "exclude": ["node_modules", "legacy", "rnd", "scripts", "nexusvault"]
 }

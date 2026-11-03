@@ -1,0 +1,52 @@
+# Deploy na Vercel z GitHub Actions — obejście dla niedziałającej integracji Git.
+#
+# Objaw: Vercel nie deployuje nic od 2.10, mimo że na `main` codziennie lądują
+# commity (bot `agt-rnd-bot`). Wygląda na to, że nie działa wyzwalacz pushy
+# (webhook / GitHub App), a nie że build się sypie. Ten workflow nie potrzebuje
+# integracji Git — deployuje samym CLI, a Actions w tym repo działają (codzienne
+# commity bota właśnie stąd idą).
+#
+# Wymagane secrets (Settings → Secrets and variables → Actions):
+#   VERCEL_TOKEN      — vercel.com/account/tokens → Create
+#   VERCEL_ORG_ID     — z .vercel/project.json po `npx vercel link`
+#   VERCEL_PROJECT_ID — jw.
+#
+# Jeśli Vercel deployuje normalnie, zostaw ten workflow wyłączony (albo usuń
+# plik) — inaczej każdy push zdeployuje się dwa razy.
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+
+      # Najpierw build lokalnie: jak się sypie, nie deployujemy w ogóle.
+      - name: Build (weryfikacja)
+        run: |
+          npm ci --include=dev
+          npm run build
+
+      # Build po stronie Vercela. Gdyby sypał się tamtejszy builder, zamień na
+      # wariant z `--prebuilt`: `npx vercel build --prod` + `npx vercel deploy
+      # --prebuilt --prod` — wtedy na Vercel wędrują gotowe artefakty.
+      - name: Deploy (produkcja)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
