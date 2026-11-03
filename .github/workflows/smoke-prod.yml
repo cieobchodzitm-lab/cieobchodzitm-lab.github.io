@@ -1,0 +1,53 @@
+# Dymek (smoke test) produkcji — sprawdza żywe endpointy prawdziwym curlem.
+#
+# Po co: narzędzia pomocnicze potrafią źle raportować odpowiedzi binarne
+# (np. zwracać „HTTP 500" dla pliku PNG, który w rzeczywistości przychodzi
+# z kodem 200). Ten workflow mierzy status, content-type i rozmiar bezpośrednio
+# z maszyny CI, więc daje wynik niezależny od lokalnych narzędzi.
+#
+# Uruchomienie: Actions → Smoke test (produkcja) → Run workflow, albo nocny cron.
+name: Smoke test (produkcja)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 5 * * *"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Statusy endpointów
+        run: |
+          BASE="https://cieobchodzitm-labgithubio.vercel.app"
+          printf "%-46s %-6s %-26s %s\n" "ŚCIEŻKA" "HTTP" "CONTENT-TYPE" "BAJTÓW"
+          fail=0
+          for p in "/" "/api/og" "/api/og?title=Test" "/api/og?slug=silentium-aurum" "/api/orders"; do
+            read -r code ctype size < <(curl -s -o /dev/null \
+              -w "%{http_code} %{content_type} %{size_download}" \
+              --max-time 90 "$BASE$p")
+            printf "%-46s %-6s %-26s %s\n" "$p" "$code" "${ctype:-—}" "$size"
+            if [ "$p" = "/api/og" ] && { [ "$code" != "200" ] || [ "$ctype" != "image/png" ]; }; then
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: Czy /api/og naprawdę zwraca PNG 1200×630
+        run: |
+          curl -s --max-time 90 -o /tmp/og.png \
+            "https://cieobchodzitm-labgithubio.vercel.app/api/og?slug=silentium-aurum"
+          python3 - <<'PY'
+          import struct, sys
+          d = open("/tmp/og.png", "rb").read()
+          print("rozmiar:", len(d), "bajtów")
+          if d[:8] != b"\x89PNG\r\n\x1a\n":
+              print("UWAGA: to nie jest PNG. Początek pliku:")
+              print(d[:400])
+              sys.exit(1)
+          w, h = struct.unpack(">II", d[16:24])
+          print(f"PNG OK, wymiary: {w}x{h}")
+          if (w, h) != (1200, 630):
+              print("UWAGA: nieoczekiwane wymiary")
+              sys.exit(1)
+          PY
