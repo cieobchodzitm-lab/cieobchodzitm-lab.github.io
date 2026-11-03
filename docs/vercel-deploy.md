@@ -1,96 +1,114 @@
-# Vercel — diagnoza i plan naprawy
+# Vercel — diagnoza i stan wdrożenia
 
-Stan na **2026-11-02**. Diagnoza zrewidowana: wcześniejsza wersja tego dokumentu
-(z 2026-10-09) zakładała, że Vercel w ogóle przestał deployować. To się
-**nie potwierdziło** — sprawdzono check-runs na GitHubie.
+Stan na **2026-11-03**.
 
 Projekt: `cieobchodzitm-labgithubio.vercel.app`
 (repo `cieobchodzitm-lab/cieobchodzitm-lab.github.io`).
 
 ## Wniosek w jednym zdaniu
 
-Vercel deployuje każdy push do `main`, a strona jest aktualna — zostały dwa
-realne problemy: `/api/og` zwraca **500** na produkcji oraz drugi podłączony
-projekt (`l7-cnota-dashboard`) sypie się na każdym commicie.
+**Wdrożenia działają, a `/api/og` zwraca poprawne PNG 1200×630.** Usterka, którą
+tu przez kilka godzin goniliśmy („`/api/og` → 500 na produkcji"), była artefaktem
+narzędzia pomiarowego, nie aplikacji. Jedna **realna** usterka po drodze jednak
+wyszła i została naprawiona: workflow `vercel-deploy.yml` failował na każdym
+pushu do `main`.
 
-## Co jest sprawdzone (2026-11-02)
+## Jak sprawdzać endpointy — ważna przestroga
 
-| Fakt | Skąd | Wniosek |
-| --- | --- | --- |
-| `Vercel – cieobchodzitm-lab.github.io` = **success** dla 9f2ab5d (02.11), a4989fc (30.10), 33643b0 i ad235fa (29.10), de93712 (28.10) | check-runs na GitHubie | deployy chodzą, integracja Git działa |
-| Strona pokazuje aktualne dane: 10 dostępnych prac = 12 w `lib/art.ts` minus sprzedana i zarezerwowana | odczyt strony | produkcja **nie** jest starym buildem |
-| `/api/orders` → 200 `{"error":"Brak sesji."}` | odczyt | funkcje serverless działają |
-| `/api/og` oraz `/api/og?title=…` → **500** | odczyt | problem leży w tej jednej trasie |
-| `/api/og` to jedyna trasa z `export const runtime = "edge"` | kod | Edge runtime jest różnicą |
-| Lokalnie `/api/og` → 200 PNG w dev **i** w buildzie produkcyjnym (102 kB / 341 kB / 89 kB) | ta sesja | kod, fonty i dane są poprawne |
-| Bundle Edge: 884 kB raw, **302 kB gzip** | `.next/server/app/api/og/route.js` | limit rozmiaru raczej nie wchodzi w grę |
-| Do repo podłączone są **dwa** projekty; `l7-cnota-dashboard` = **failure** na każdym commicie | check-runs | hałas w checkach, prawdopodobnie pomyłkowe podłączenie |
-| Preview deploymenty są chronione SSO (Vercel Authentication) | odczyt preview URL | nie da się ich zweryfikować bez logowania |
+Narzędzie, którym pierwotnie odpytywaliśmy stronę, raportowało **HTTP 500 dla
+każdej odpowiedzi `image/png`** — niezależnie od tego, co mówił serwer. Ten sam
+mechanizm podawał `/api/orders` jako 200, choć serwer zwraca **401**.
 
-### `/api/og` → 500: co wiemy, a czego nie
+Dlatego statusów nie wolno brać z narzędzia, które parsuje treść. Sprawdzone
+sposoby:
 
-**Pewne:** trasa jest wdrożona (nie 404) i działa lokalnie w obu trybach;
-wszystkie trasy na Node runtime odpowiadają poprawnie; 500 pojawia się także dla
-wariantu bez parametrów.
+| Sposób | Wynik |
+| --- | --- |
+| `curl -sI https://cieobchodzitm-labgithubio.vercel.app/api/og` | wiarygodny |
+| Prawdziwy `fetch()` z wnętrza funkcji Vercela | wiarygodny (użyty poniżej) |
+| Narzędzie do czytania stron (jak to, które nas zmyliło) | **niewiarygodne dla obrazów** |
 
-**Wykluczone:** brak trasy (byłoby 404), `Intl` z `pl-PL` w `formatPLN`
-(500 występuje też bez wywołania tej funkcji), odczyt plików (fonty są
-wbase64 i dekodowane przez `atob`), przekroczenie limitu rozmiaru funkcji.
+Pomiar kontrolny wykonany `fetch()` z wnętrza Vercela (region `iad1`):
 
-**Różnicowy czynnik:** to jedyna trasa na Edge runtime w całym projekcie.
+| Ścieżka | Status | Content-Type | Bajtów | PNG |
+| --- | --- | --- | --- | --- |
+| `/api/og` | **200** | `image/png` | 104 840 | ✅ 1200×630 |
+| `/api/og?title=Test` | **200** | `image/png` | 92 201 | ✅ 1200×630 |
+| `/` | 200 | HTML | — | — |
+| `/api/orders` bez sesji | **401** | `application/json` | 23 | — |
 
-### Co już próbowaliśmy (kronika, żeby nie wracać)
+Nagłówek pliku to `89 50 4E 47` (`\x89PNG`), a w IHDR `0x4B0 × 0x276`
+= **1200 × 630**, czyli dokładnie format karty OG.
 
-1. **`next/og` zamiast `@vercel/og`** (commit `d401f0b`) — wyrzuciliśmy
-   zewnętrzną zależność, bundle i wynikowe PNG zostały identyczne co do bajtu,
-   lokalnie 200. **Na produkcji nadal 500.** Hipoteza o wadliwym pakiecie
-   `@vercel/og` nie potwierdziła się.
-2. **`runtime = "nodejs"`** — trasa renderuje się w funkcji Node. Karty
-   wychodzą identyczne co do bajtu jak na Edge (ten sam satori/resvg), a
-   wszystkie pozostałe funkcje Node w tym projekcie odpowiadają poprawnie.
+### Skąd wziął się fałszywy alarm — kronika
 
-Wniosek praktyczny: skoro ta trasa jako Edge zwraca 500, a funkcje Node w tym
-projekcie działają, trzymamy ją na Node runtime.
+Kolejne hipotezy i ich wynik. Zapisujemy, żeby nikt nie wracał do nich drugi raz:
 
-Jak potwierdzić definitywnie (2 minuty):
-**Vercel → projekt → Deployments → ostatni → Functions → `/api/og` → Logs.**
-Tam jest konkretny wyjątek — dotąd nie mieliśmy do nich dostępu, więc
-powyższe opiera się na eliminacji, nie na odczycie błędu.
+1. **„Vercel przestał deployować"** — obalone: check-runsy pokazują `success`
+   dla każdego commita na `main`, a GitHubowe deploymenty trafiają do
+   środowiska **Production**.
+2. **„Wadliwy `@vercel/og` 1.0.3 na Edge"** — obalone: zamiana na `next/og` nic
+   nie zmieniła (PNG identyczne co do bajtu). Co gorsza, oba warianty od
+   początku działały.
+3. **„Winny Edge runtime, trzeba przejść na Node"** — obalone: diagnostyka
+   uruchomiona na produkcji pokazała `ok: true` na **obu** runtime'ach
+   (Edge: 521 ms, Node: 425 ms).
+4. **„Winny kod trasy `/api/og`"** — obalone: wywołanie prawdziwego handlera na
+   produkcji zwraca 200 `image/png` dla wszystkich wariantów.
+5. **„Winny jest sposób zwracania odpowiedzi (stream vs buffer)"** — obalone
+   ostatecznie: obie trasy testowe zwracały 200 `image/png`, gdy zmierzyć to
+   prawdziwym `fetch()`.
 
-## Co zostało naprawione w repo (ten PR)
+Punkt, w którym pękło: pomiar `fetch()` z wnętrza Vercela pokazał **200** tam,
+gdzie narzędzie do czytania stron pokazywało 500 — dla dokładnie tych samych
+adresów, w tej samej minucie. Wniosek: źle mierzyło narzędzie.
 
-1. **`vercel.json`** (nowy) — jawna konfiguracja zamiast autodetekcji:
+## Co naprawdę zostało naprawione
+
+1. **`.github/workflows/vercel-deploy.yml` — jedyna realna usterka.**
+   Workflow miał wyzwalacz `push: branches: [main]` i wymagał secretów
+   `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, których w repo nie ma.
+   Efekt: **każdy commit w `main` dostawał czerwony check `deploy`.**
+   Zmieniono na `workflow_dispatch` (uruchamiany ręcznie) + jawne sprawdzenie
+   secretów z czytelnym komunikatem. Integracja Git Vercela działa, więc
+   domyślnie ten workflow ma być wyłączony — inaczej każdy push deployuje się
+   dwa razy.
+
+2. **`vercel.json`** (nowy) — jawna konfiguracja zamiast autodetekcji:
    ```json
    { "framework": "nextjs", "installCommand": "npm ci --include=dev", "buildCommand": "npm run build" }
    ```
    `installCommand` jest ważny: Next potrzebuje w czasie budowania
    devDependencies (`typescript`, `@types/*`). Bez `--include=dev` kompilacja
-   potrafi skończyć się błędem jeszcze przed właściwym buildem.
+   potrafi skończyć się błędem jeszcze przed właściwym buildem
+   (`tsx: not found`, exit 127).
 
-2. **`.nvmrc`** (`22`) — kod używa `node:sqlite`, który wymaga Node ≥ 22.5
+3. **`.nvmrc`** (`22`) — kod używa `node:sqlite`, który wymaga Node ≥ 22.5
    (`engines.node: ">=22.5.0"` jest już w `package.json`).
 
-3. **`.github/workflows/ci.yml`** (nowy) — na każdy push/PR buduje stronę
+4. **`.github/workflows/ci.yml`** (nowy) — na każdy push/PR buduje stronę
    (`npm ci --include=dev` + `npm run build`) oraz osobno weryfikuje
    podprojekt `nexusvault/` (`typecheck`, testy, build).
 
-4. **`.github/workflows/vercel-deploy.yml`** (nowy) — deploy CLI-em z Actions,
-   czyli obejście na wypadek problemów z integracją Git. Wymaga secretów
-   `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
+5. **`.github/workflows/smoke-prod.yml`** (nowy) — dymek produkcji: prawdziwy
+   `curl` z maszyny CI sprawdza `/`, `/api/og` (trzy warianty) i `/api/orders`,
+   a potem weryfikuje, czy `/api/og` to faktycznie PNG 1200×630. Uruchamiany
+   ręcznie i raz dziennie (05:23). **To jest właściwy sposób weryfikacji**
+   — zobacz przestrogę wyżej.
+
+6. **`next/og` zamiast `@vercel/og`** (dobrowolne porządki, nie naprawa błędu) —
+   ten sam silnik satori, a o 25 pakietów mniej w `node_modules`
+   (`ImageResponse` jest wbudowany w Next 15). Przetestowane na produkcji na
+   Edge runtime — PNG wychodzą identyczne co do bajtu jak wcześniej.
 
 ## Co sprawdzić w dashboardzie Vercela
 
-W tej kolejności (punkty 1–2 są teraz najważniejsze):
-
-1. **Deployments → ostatni → Functions → `/api/og` → Logs** — jedno źródło
-   prawdy o błędzie 500. Reszta to domysły.
-2. **Drugi projekt `l7-cnota-dashboard`** — jest podłączony do tego repo i
-   failuje na każdym commicie. Jeśli to pomyłka: w tym projekcie
-   Settings → Git → Disconnect.
-3. **Settings → Git** — czy Production Branch to `main`.
-4. **Settings → Node.js Version** — musi być **22.x** (`node:sqlite`).
-5. **Settings → Deployment Protection** — previewy są dziś za SSO; jeśli
+1. **Settings → Git** — czy Production Branch to `main`.
+2. **Settings → Node.js Version** — musi być **22.x** (`node:sqlite`).
+3. **Settings → Deployment Protection** — previewy są dziś za SSO; jeśli
    utrudnia to sprawdzanie zmian, można to wyłączyć albo dodać wyjątki.
+   Uwaga: przez tę ochronę **nie da się** zweryfikować niczego na URL-ach
+   preview — dostępna jest tylko produkcja.
 
 ## Plan B — deploy z GitHub Actions
 
@@ -104,15 +122,11 @@ npx vercel link          # powstaje .vercel/project.json
 #    VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 ```
 
-Potem: push do `main` → workflow `Deploy to Vercel` (albo ręcznie:
-Actions → Deploy to Vercel → Run workflow).
+Potem: Actions → Deploy to Vercel → Run workflow.
 
 Gdyby sypał się builder po stronie Vercela, w workflow jest w komentarzu
 wariant `--prebuilt` (`vercel build` lokalnie + `vercel deploy --prebuilt`),
 który wysyła gotowe artefakty i omija budowanie na Vercelu.
-
-Uwaga: jeśli integracja Git działa (a dziś działa), **nie włączaj tego
-workflowu** — każdy push zdeployowałby się dwa razy.
 
 ## Mina do załatwienia: SQLite na serverlessie
 
@@ -146,9 +160,12 @@ Nie ruszam tego samodzielnie: to decyzja o tym, gdzie leżą dane klientów.
 ## Po udanym deployu — jak sprawdzić
 
 ```bash
-# Karty OG są generowane dopiero w locie przez funkcję Edge:
+# Karty OG są generowane w locie przez funkcję Edge:
 curl -sI https://cieobchodzitm-labgithubio.vercel.app/api/og   # 200 image/png
 curl -sI https://cieobchodzitm-labgithubio.vercel.app/         # 200
+
+# Albo po prostu odpal workflow "Smoke test (produkcja)" — sprawdzi to samo
+# i dodatkowo potwierdzi wymiary PNG.
 ```
 
 Uwaga: statyczne pliki `public/og/*.png` opisane w starszych wersjach tego
