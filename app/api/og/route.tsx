@@ -22,17 +22,10 @@ import {
  * Rendered with satori — no browser, runs as an Edge Function.
  *
  * `ImageResponse` comes from `next/og` (built into Next), not from the
- * standalone `@vercel/og` package: the external one returned HTTP 500 on
- * Vercel's Edge runtime with Next 15 while working locally, so we use the
- * version Next ships and bundles itself.
+ * standalone `@vercel/og` package. Same satori engine, one dependency less —
+ * verified on production with this Edge runtime.
  */
-
-// Node runtime, nie Edge: na produkcji (Vercel) trasa zwracała HTTP 500 jako
-// jedyna funkcja Edge w projekcie, podczas gdy wszystkie funkcje Node
-// odpowiadają poprawnie (np. /api/orders → 200). Lokalnie działały oba
-// warianty — różnica wychodziła dopiero na infrastrukturze Vercela.
-// `next/og` działa na Node runtime bez zmiany kodu renderowania.
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 // Cards are generated per request (title/slug come from the query string).
 export const dynamic = "force-dynamic";
