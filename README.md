@@ -229,6 +229,18 @@ rnd/, scripts/  pre-existing fleet-pulse tooling (unchanged)
 | `BRIDGE_ADMIN_USERNAME` / `BRIDGE_ADMIN_PASSWORD` | bootstrap admin, used only at first seed |
 | `NEXT_PUBLIC_SITE_URL` | absolute origin for canonical + OG image URLs (on Vercel it falls back to `VERCEL_PROJECT_PRODUCTION_URL`) |
 
+## Status zrzutki AGT / PDS HU-SAR (2026-11-13)
+
+Aktualny, publicznie bezpieczny status programu i zrzutki jest w [`STATUS.md`](STATUS.md). Skrót nowości: [`NEWS.md`](NEWS.md). Ślad audytu: [`AUDIT_TRAIL.md`](AUDIT_TRAIL.md).
+
+- Zrzutka: [https://zrzutka.pl/hkkzyn](https://zrzutka.pl/hkkzyn) (cel 555 000 zł).
+- Landing: [https://agt-lab-zrzutka.vercel.app/](https://agt-lab-zrzutka.vercel.app/).
+- 12–13.11.2026: korekta treści landingu po audycie zgodności HSA-001; ponowny audyt tekstu 13.11.2026 — PASS.
+- Program PDS HU-SAR obejmuje dwa odrębne elementy: kask RESCUE RECON i dwuwirnikowy dron zwiadowczy.
+- Pozycjonowanie: AI dla ratownictwa (SAR), dual-use defensywne. Estońska spółka AGT jest w trakcie zakładania.
+- Medal Benenati to imienny cyfrowy certyfikat. Medale NFT są 1/1 i nie dają praw do zysku. Zbiórka kapitałowa dopiero po prototypie.
+- Kolekcja Stoic Matrix / Amor Fati Bene Nati na Solanie: nie wdrożona (NOT DEPLOYED).
+
 ## Operator
 
 Zbigniew Szymon Kołacz · phantom@angelguardian.tech
